@@ -191,8 +191,12 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-20 bg-gray-50 editorial-card mx-2">
-            <h3 className="font-display text-2xl text-brand-muted">No products found for "{searchQuery}"</h3>
-            <p className="mt-2 text-sm text-gray-400">Try searching for something else like "Rice" or "Oil".</p>
+            <h3 className="font-display text-2xl text-brand-muted">
+              {searchQuery ? `No products found for "${searchQuery}"` : "No products"}
+            </h3>
+            {searchQuery && (
+              <p className="mt-2 text-sm text-gray-400">Try searching for something else like "Rice" or "Oil".</p>
+            )}
           </div>
         )}
 
