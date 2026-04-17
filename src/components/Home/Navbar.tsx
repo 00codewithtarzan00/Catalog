@@ -43,14 +43,14 @@ const NavLinks = ({ closeMenu }: { closeMenu: () => void }) => (
       <HomeIcon className="w-4 h-4 lg:hidden" />
       <span>Home</span>
     </Link>
-    <button onClick={closeMenu} className="flex items-center gap-2 text-sm font-semibold hover:text-brand-accent transition-colors text-left">
+    <Link to="/about" onClick={closeMenu} className="flex items-center gap-2 text-sm font-semibold hover:text-brand-accent transition-colors">
       <Info className="w-4 h-4 lg:hidden" />
       <span>About</span>
-    </button>
-    <button onClick={closeMenu} className="flex items-center gap-2 text-sm font-semibold hover:text-brand-accent transition-colors text-left">
+    </Link>
+    <Link to="/contact" onClick={closeMenu} className="flex items-center gap-2 text-sm font-semibold hover:text-brand-accent transition-colors">
       <Phone className="w-4 h-4 lg:hidden" />
       <span>Contact</span>
-    </button>
+    </Link>
   </>
 );
 

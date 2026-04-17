@@ -20,56 +20,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screens bg-gray-50 flex flex-col h-screen">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar onSearch={() => {}} />
       
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-16 md:w-64 bg-brand-accent text-white flex flex-col pt-8">
-          <div className="px-4 md:px-8 mb-12 hidden md:block">
-            <div className="font-display font-bold text-2xl tracking-tighter">Dashboard</div>
-            <p className="text-[10px] uppercase opacity-60 tracking-widest mt-1">Admin Panel</p>
-          </div>
-
-          <nav className="flex-1 px-2 md:px-4 space-y-2">
-            <button
-              onClick={() => setActiveTab('inventory')}
-              title="Inventory"
-              className={`w-full flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-3 rounded-md text-sm font-medium transition-colors ${activeTab === 'inventory' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
-            >
-              <Package className="w-4 h-4" />
-              <span className="hidden md:inline">Inventory List</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('notices')}
-              title="Notices"
-              className={`w-full flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-3 rounded-md text-sm font-medium transition-colors ${activeTab === 'notices' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
-            >
-              <Bell className="w-4 h-4" />
-              <span className="hidden md:inline">Notices</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('settings')}
-              title="Settings"
-              className={`w-full flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-3 rounded-md text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden md:inline">Global Settings</span>
-            </button>
-          </nav>
-
-          <div className="p-2 md:p-4 border-t border-white/10">
-            <button
-              onClick={handleLogout}
-              title="Sign Out"
-              className="w-full flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-3 rounded-md text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">Sign Out</span>
-            </button>
-          </div>
-        </aside>
-
+      <div className="flex flex-1 flex-col overflow-hidden pb-16 md:pb-20">
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-10">
           <div className="max-w-5xl mx-auto">
@@ -78,6 +32,41 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             {activeTab === 'settings' && <SettingsManager />}
           </div>
         </main>
+
+        {/* Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-brand-accent text-white flex items-center justify-around p-2 md:p-4 shadow-top z-50">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'inventory' ? 'bg-white text-brand-accent' : 'text-white/70'}`}
+          >
+            <Package className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Inventory</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('notices')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'notices' ? 'bg-white text-brand-accent' : 'text-white/70'}`}
+          >
+            <Bell className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Notices</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-white text-brand-accent' : 'text-white/70'}`}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Settings</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-white/70 hover:text-white"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Exit</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

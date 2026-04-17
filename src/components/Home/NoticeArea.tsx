@@ -23,7 +23,14 @@ export default function NoticeArea({ currentNotice }: NoticeAreaProps) {
             </p>
           </div>
         ) : (
-          <p className="text-sm text-brand-muted italic">No active notices at this time.</p>
+          <div>
+            <h4 className="text-lg md:text-xl font-display font-bold text-brand-accent leading-none">
+              Shop Status
+            </h4>
+            <p className="text-sm md:text-base text-brand-muted mt-1 italic">
+              Opens daily (Sunday - Monday) : 6am - 8pm
+            </p>
+          </div>
         )}
       </div>
 

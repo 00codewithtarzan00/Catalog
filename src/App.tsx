@@ -4,6 +4,8 @@ import Home from './components/Home/Home';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import Login from './components/Admin/Login';
 import NoticeHistory from './components/Home/NoticeHistory';
+import Contact from './components/Home/Contact';
+import About from './components/Home/About';
 import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
@@ -41,6 +43,8 @@ export default function App() {
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/notices" element={<NoticeHistory />} />
           <Route path="/admin" element={isAdmin ? <AdminDashboard onLogout={handleLogout} /> : <Login onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/admin/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
