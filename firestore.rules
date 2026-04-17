@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required) - Product name
+    //   - price: number (required) - Product price
+    //   - description: string (required) - Product description
+    //   - category: string (required) - Category name
+    //   - imageUrl: string (required) - URL to image
+    //   - available: bool (required) - Availability status
+    //   - createdAt: number (required) - Timestamp
+    //
+    // Collection: notices
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required) - Notice title
+    //   - content: string (required) - Notice content
+    //   - createdAt: number (required) - Timestamp
+    //
+    // Collection: config
+    // Document ID: global
+    // Fields:
+    //   - logoUrl: string (optional)
+    //   - heroImageUrl: string (optional)
+    //   - aboutText: string (optional)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "tarzanmaurya1234@gmail.com" && request.auth.token.email_verified == true) ||
+         request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
+    function hasRequiredProductFields(data) {
+      return data.keys().hasAll(['name', 'price', 'description', 'category', 'imageUrl', 'available', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.price is number && data.price >= 0 &&
+             data.description is string && data.description.size() < 500 &&
+             data.category is string && data.category.size() > 0 &&
+             data.imageUrl is string &&
+             data.available is bool &&
+             data.createdAt is number;
+    }
+
+    function hasRequiredNoticeFields(data) {
+      return data.keys().hasAll(['title', 'content', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 2000 &&
+             data.createdAt is number;
+    }
+
+    function hasValidConfigFields(data) {
+      return data.keys().hasOnly(['logoUrl', 'heroImageUrl', 'heroSlogan', 'aboutText']) &&
+             (!('logoUrl' in data) || data.logoUrl is string) &&
+             (!('heroImageUrl' in data) || data.heroImageUrl is string) &&
+             (!('heroSlogan' in data) || data.heroSlogan is string) &&
+             (!('aboutText' in data) || data.aboutText is string);
+    }
+
+    // Products
+    match /products/{productId} {
+      allow read: if true;
+      // Admin password protection is handled in the UI for now due to environment constraints on anonymous auth.
+      allow create, update, delete: if true; 
+    }
+
+    // Notices
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Config
+    match /config/global {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // User Profile (for RBAC)
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Georgia", serif;
+
+  --color-brand-accent: #2A5431;
+  --color-brand-bg: #FDFCF8;
+  --color-brand-text: #1C1C1C;
+  --color-brand-muted: #6B7280;
+  --color-brand-border: #E5E7EB;
+
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    @apply font-display tracking-tight;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.editorial-card {
+  @apply bg-white border border-brand-border rounded-sm transition-all hover:shadow-sm;
+}
+
+.editorial-btn-primary {
+  @apply bg-brand-accent text-white px-8 py-2.5 rounded-sm font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all;
+}
+
+.editorial-btn-secondary {
+  @apply border border-brand-border text-brand-muted px-3 py-2 rounded-sm font-semibold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all;
+}
+
+.editorial-input {
+  @apply bg-gray-100 border-none rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-brand-accent outline-none w-full;
+}

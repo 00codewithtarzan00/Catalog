@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Kirana store product item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Display name of the product" },
+        "price": { "type": "number", "description": "Current rate of the product" },
+        "description": { "type": "string", "description": "Brief product details" },
+        "category": { "type": "string", "description": "Product category for grouping" },
+        "imageUrl": { "type": "string", "format": "url", "description": "Product image link" },
+        "available": { "type": "boolean", "description": "Current stock availability" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" }
+      },
+      "required": ["name", "price", "category", "available", "createdAt"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "Store notice or announcement",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Headline of the notice" },
+        "content": { "type": "string", "description": "Main text of the notice" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" }
+      },
+      "required": ["title", "content", "createdAt"]
+    },
+    "StoreConfig": {
+      "title": "StoreConfig",
+      "description": "Global settings for the store appearance",
+      "type": "object",
+      "properties": {
+        "logoUrl": { "type": "string", "format": "url" },
+        "heroImageUrl": { "type": "string", "format": "url" },
+        "aboutText": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Store inventory items"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Store announcements"
+    },
+    "/config/global": {
+      "schema": "StoreConfig",
+      "description": "Global store settings"
+    }
+  }
+}
