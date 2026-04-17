@@ -5,11 +5,11 @@
   --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-display: "Georgia", serif;
 
-  --color-brand-accent: #2A5431;
-  --color-brand-bg: #FDFCF8;
-  --color-brand-text: #1C1C1C;
-  --color-brand-muted: #6B7280;
-  --color-brand-border: #E5E7EB;
+  --color-brand-accent: #0047AB;
+  --color-brand-bg: #FFFFFF;
+  --color-brand-text: #050505;
+  --color-brand-muted: #64748b;
+  --color-brand-border: #e2e8f0;
 
   --animate-fade-in: fade-in 0.5s ease-out;
   --animate-slide-up: slide-up 0.5s ease-out;

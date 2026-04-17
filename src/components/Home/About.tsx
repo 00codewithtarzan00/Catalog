@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { motion } from 'motion/react';
 import { Package, ShieldCheck, Truck, Users } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { StoreConfig } from '../../types';
 
 export default function About() {
+  const [config, setConfig] = useState<StoreConfig>({});
+
+  useEffect(() => {
+    return onSnapshot(doc(db, 'config', 'global'), (snap) => {
+      if (snap.exists()) setConfig(snap.data() as StoreConfig);
+    });
+  }, []);
+
   const stats = [
     { icon: <Package className="w-6 h-6" />, label: "Wide Variety", desc: "From staples to cosmetics" },
     { icon: <ShieldCheck className="w-6 h-6" />, label: "Pure Quality", desc: "Handpicked fresh items" },
@@ -13,7 +24,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar onSearch={() => {}} />
+      <Navbar onSearch={() => {}} config={config} />
       
       <main className="flex-1">
         {/* Hero Section */}

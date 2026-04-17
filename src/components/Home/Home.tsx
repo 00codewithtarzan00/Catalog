@@ -98,7 +98,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar onSearch={setSearchQuery} />
+      <Navbar onSearch={setSearchQuery} config={config} />
       <Hero config={config} />
       <NoticeArea currentNotice={latestNotice} />
 

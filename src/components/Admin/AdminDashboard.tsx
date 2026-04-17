@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Settings, LogOut, Bell } from 'lucide-react';
 import ProductManager from './ProductManager';
 import SettingsManager from './SettingsManager';
 import NoticeManager from './NoticeManager';
 import Navbar from '../Home/Navbar';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { StoreConfig } from '../../types';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -12,7 +15,14 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'inventory' | 'settings' | 'notices'>('inventory');
+  const [config, setConfig] = useState<StoreConfig>({});
   const navigate = useNavigate();
+
+  useEffect(() => {
+    return onSnapshot(doc(db, 'config', 'global'), (snap) => {
+      if (snap.exists()) setConfig(snap.data() as StoreConfig);
+    });
+  }, []);
 
   const handleLogout = () => {
     onLogout();
@@ -21,7 +31,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar onSearch={() => {}} />
+      <Navbar onSearch={() => {}} config={config} />
       
       <div className="flex flex-1 flex-col overflow-hidden pb-16 md:pb-20">
         {/* Content */}

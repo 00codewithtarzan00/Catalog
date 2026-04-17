@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { StoreConfig } from '../../types';
 
 export default function Contact() {
+  const [config, setConfig] = useState<StoreConfig>({});
+
+  useEffect(() => {
+    return onSnapshot(doc(db, 'config', 'global'), (snap) => {
+      if (snap.exists()) setConfig(snap.data() as StoreConfig);
+    });
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar onSearch={() => {}} />
+      <Navbar onSearch={() => {}} config={config} />
       
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-12 md:py-20">
         <motion.div 
@@ -42,12 +53,12 @@ export default function Contact() {
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-brand-border flex items-start gap-4">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
-                <MessageCircle className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                <MessageCircle className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-1">WhatsApp</h3>
-                <a href="https://wa.me/918182831828" target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-green-600 hover:underline">
+                <a href="https://wa.me/918182831828" target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-blue-600 hover:underline">
                   +91 8182831828
                 </a>
                 <p className="text-sm text-brand-muted">Available for quick queries and pricing info.</p>

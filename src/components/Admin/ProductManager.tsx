@@ -142,7 +142,7 @@ export default function ProductManager() {
             
             <div className="flex items-center justify-between pt-4 border-t border-brand-border">
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold uppercase ${p.available ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-[10px] font-bold uppercase ${p.available ? 'text-blue-600' : 'text-red-600'}`}>
                   {p.available ? 'In Stock' : 'Out of Stock'}
                 </span>
                 <button

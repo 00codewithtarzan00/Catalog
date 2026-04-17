@@ -85,7 +85,7 @@ export default function NoticeManager() {
           
           {notices.map((n, idx) => (
             <div key={n.id} className={`bg-white editorial-card p-6 relative ${idx === 0 ? 'border-l-4 border-l-brand-accent shadow-md' : ''}`}>
-              {idx === 0 && <span className="absolute top-2 right-4 text-[10px] font-bold text-brand-accent bg-green-50 px-2 py-0.5 rounded-sm">Current Active</span>}
+              {idx === 0 && <span className="absolute top-2 right-4 text-[10px] font-bold text-brand-accent bg-blue-50 px-2 py-0.5 rounded-sm">Current Active</span>}
               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase mb-2">
                 <Calendar className="w-3 h-3" />
                 {new Date(n.createdAt).toLocaleString()}

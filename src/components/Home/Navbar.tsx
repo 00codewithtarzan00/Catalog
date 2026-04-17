@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Search, User as UserIcon, ArrowLeft, Menu, X, Home as HomeIcon, Info, Phone } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { StoreConfig } from '../../types';
 
 interface NavbarProps {
   onSearch: (query: string) => void;
+  config?: StoreConfig;
 }
 
 interface SearchBarProps {
@@ -54,11 +56,14 @@ const NavLinks = ({ closeMenu }: { closeMenu: () => void }) => (
   </>
 );
 
-export default function Navbar({ onSearch }: NavbarProps) {
+export default function Navbar({ onSearch, config }: NavbarProps) {
   const [searchValue, setSearchValue] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Dynamic logo with fallback
+  const LOGO_URL = config?.logoUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=100&h=100&fit=crop";
 
   const handleSearchSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -94,8 +99,21 @@ export default function Navbar({ onSearch }: NavbarProps) {
             {isMenuOpen ? <X className="w-6 h-6 text-brand-accent" /> : <Menu className="w-6 h-6 text-brand-accent" />}
           </button>
 
-          <Link to="/" className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap">
-            Raj Kirana Store
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-brand-accent bg-gray-50 flex-shrink-0">
+               <img 
+                 src={LOGO_URL} 
+                 alt="Logo" 
+                 className="w-full h-full object-cover"
+                 onError={(e) => {
+                   // Fallback if the link isn't a direct image
+                   (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/store/100/100';
+                 }}
+               />
+            </div>
+            <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap">
+              Raj Kirana Store
+            </span>
           </Link>
         </div>
 

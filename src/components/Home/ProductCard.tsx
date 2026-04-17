@@ -30,7 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {product.available && (
-          <div className="absolute top-2 right-2 bg-green-100 text-green-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm">
+          <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm">
             In Stock
           </div>
         )}
@@ -58,7 +58,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
           {product.mrp && product.mrp > product.price && (
-            <span className="text-[10px] font-bold text-green-600 uppercase">
+            <span className="text-[10px] font-bold text-blue-600 uppercase">
               {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF
             </span>
           )}
