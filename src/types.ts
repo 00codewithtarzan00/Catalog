@@ -12,6 +12,7 @@ export interface Product {
   category: string;
   imageUrl: string;
   available: boolean;
+  isSpecial?: boolean; // Featured special discount items
   createdAt: number;
 }
 

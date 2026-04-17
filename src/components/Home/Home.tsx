@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product, Notice, StoreConfig } from '../../types';
+import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
 import Hero from './Hero';
 import NoticeArea from './NoticeArea';
 import ProductCard from './ProductCard';
+import { formatPrice } from '../../lib/utils';
+import { motion } from 'motion/react';
+import { Star } from 'lucide-react';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [config, setConfig] = useState<StoreConfig>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
@@ -57,15 +62,20 @@ export default function Home() {
 
   const latestNotice = notices.length > 0 ? notices[0] : null;
 
-  // Search Logic
+  // Search & Category Logic
   const filteredProducts = products.filter((p) => {
-    const term = searchQuery.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(term) ||
-      p.description.toLowerCase().includes(term) ||
-      p.category.toLowerCase().includes(term)
+    const matchesSearch = searchQuery.trim() === '' || (
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
+    
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
   });
+
+  const specialItems = products.filter(p => p.isSpecial).slice(0, 2);
 
   // If searching for unavailable item, show categorization
   const isSearchEmpty = searchQuery.trim() === '';
@@ -92,7 +102,87 @@ export default function Home() {
       <Hero config={config} />
       <NoticeArea currentNotice={latestNotice} />
 
+      {/* Categories Filter Section */}
+      <section className="bg-white border-b border-brand-border py-6 px-4 md:px-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] text-brand-muted shrink-0">Browse Shop</h2>
+          <div className="relative w-full max-w-sm">
+            <select
+              onChange={(e) => setSelectedCategory(e.target.value === 'all' ? null : e.target.value)}
+              value={selectedCategory || 'all'}
+              className="w-full h-11 px-4 bg-gray-50 border border-brand-border rounded-md font-sans text-sm font-semibold appearance-none cursor-pointer focus:outline-none focus:border-brand-accent transition-colors"
+            >
+              <option value="all">All Categories (Sab Saaman)</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-accent">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Special Discounted Section */}
+      {specialItems.length > 0 && (
+        <section className="bg-brand-accent/5 py-12 px-4 md:px-10 border-b border-brand-border">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
+              <Star className="w-5 h-5 text-brand-accent fill-brand-accent" />
+              <h2 className="font-display text-2xl font-bold text-brand-accent tracking-tight underline decoration-1 underline-offset-8">Dhamaka Deals (Special Offers)</h2>
+            </div>
+            
+            <div className={`grid gap-6 ${specialItems.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:max-w-6xl'}`}>
+              {specialItems.map((item) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px]"
+                >
+                  <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm">
+                    {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
+                  </div>
+                  
+                  <div className="w-full md:w-40 aspect-square overflow-hidden bg-gray-50 flex-shrink-0">
+                    <img 
+                      src={item.imageUrl || `https://picsum.photos/seed/${item.id}/400/400`} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    />
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col justify-center py-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] uppercase font-bold text-brand-accent">{item.category}</span>
+                      <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1 rounded animate-pulse">Save ₹{item.mrp - item.price}</span>
+                    </div>
+                    <h3 className="font-display text-2xl font-bold mb-2 leading-tight break-words">{item.name}</h3>
+                    <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words">"{item.description}"</p>
+                    
+                    <div className="flex items-end gap-3 mt-auto">
+                      <div className="flex flex-col">
+                         <span className="text-xs text-brand-muted line-through font-bold">{formatPrice(item.mrp)}</span>
+                         <span className="text-4xl font-display font-black text-brand-accent">{formatPrice(item.price)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <main className="flex-1 px-4 md:px-10 py-10 max-w-7xl mx-auto w-full">
+        {selectedCategory && (
+          <div className="mb-8 border-l-4 border-brand-accent pl-4 py-2 bg-brand-accent/5">
+             <h2 className="text-xl font-display font-bold text-brand-accent">{selectedCategory}</h2>
+             <p className="text-xs text-brand-muted">{filteredProducts.length} items available in this section</p>
+          </div>
+        )}
+        
         {displayProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {displayProducts.map((p) => (

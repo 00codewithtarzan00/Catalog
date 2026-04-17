@@ -119,21 +119,27 @@ export default function Navbar({ onSearch }: NavbarProps) {
           </Link>
         </div>
 
-        {/* Mobile Menu Overlay */}
+        {/* Mobile Menu Overlay - Bottom Sheet Style */}
         {isMenuOpen && (
-          <div className="fixed inset-0 top-16 bg-white z-40 lg:hidden animate-fade-in flex flex-col p-6 space-y-6 shadow-2xl overflow-y-auto">
-            <div className="flex flex-col gap-6 pt-4">
-              <NavLinks closeMenu={() => setIsMenuOpen(false)} />
-            </div>
-            <div className="pt-8 border-t border-brand-border">
-              <Link 
-                to="/admin" 
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 w-full bg-brand-accent text-white p-4 rounded-md font-bold text-sm shadow-lg"
-              >
-                <UserIcon className="w-5 h-5" />
-                Admin Portal
-              </Link>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden animate-fade-in" onClick={() => setIsMenuOpen(false)}>
+            <div 
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-2xl animate-slide-up max-h-[80vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+              <div className="flex flex-col gap-6">
+                <NavLinks closeMenu={() => setIsMenuOpen(false)} />
+                <div className="pt-6 border-t border-brand-border">
+                  <Link 
+                    to="/admin" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 w-full bg-brand-accent text-white p-4 rounded-xl font-bold text-sm shadow-lg justify-center active:scale-95 transition-transform"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    Admin Portal
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         )}
