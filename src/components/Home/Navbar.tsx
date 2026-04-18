@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, User as UserIcon, ArrowLeft, Menu, X, Home as HomeIcon, Info, Phone } from 'lucide-react';
+import { Search, User as UserIcon, ArrowLeft, Menu, X, Home as HomeIcon, Info, Mail } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { StoreConfig } from '../../types';
 
@@ -50,7 +50,7 @@ const NavLinks = ({ closeMenu }: { closeMenu: () => void }) => (
       <span>About</span>
     </Link>
     <Link to="/contact" onClick={closeMenu} className="flex items-center gap-2 text-sm font-semibold hover:text-brand-accent transition-colors">
-      <Phone className="w-4 h-4 lg:hidden" />
+      <Mail className="w-4 h-4 lg:hidden" />
       <span>Contact</span>
     </Link>
   </>

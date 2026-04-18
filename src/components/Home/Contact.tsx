@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
-import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { Mail, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -54,19 +54,6 @@ export default function Contact() {
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-brand-border flex items-start gap-4">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                <MessageCircle className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-1">WhatsApp</h3>
-                <a href="https://wa.me/918182831828" target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-blue-600 hover:underline">
-                  +91 8182831828
-                </a>
-                <p className="text-sm text-brand-muted">Available for quick queries and pricing info.</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-brand-border flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                 <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
@@ -88,13 +75,8 @@ export default function Contact() {
               <div className="w-16 h-1 bg-white/30 rounded-full mb-8" />
               <h2 className="text-3xl font-display font-bold leading-tight mb-6 italic">"Serving quality kirana and fresh groceries to you and your family."</h2>
               <div className="flex items-start gap-4">
-                <MapPin className="w-6 h-6 shrink-0 mt-1" />
                 <div>
-                  <p className="font-bold text-xl">Raj Kirana Store</p>
-                  <p className="text-white/80 leading-relaxed font-sans">
-                    Vill. - Bagapar, Deoria<br />
-                    Uttar Pradesh - 274202
-                  </p>
+                  <p className="font-bold text-xl uppercase tracking-tighter">Raj Kirana Store</p>
                 </div>
               </div>
             </div>
