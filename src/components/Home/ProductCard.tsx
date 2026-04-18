@@ -5,15 +5,16 @@ import { motion } from 'motion/react';
 
 interface ProductCardProps {
   product: Product;
-  key?: React.Key;
+  onClick: (product: Product) => void;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, onClick }: ProductCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`editorial-card group ${!product.available ? 'opacity-75' : ''}`}
+      onClick={() => onClick(product)}
+      className={`editorial-card group cursor-pointer ${!product.available ? 'opacity-75' : ''}`}
     >
       <div className="relative aspect-square overflow-hidden bg-gray-50 border-b border-brand-border">
         <img
@@ -36,17 +37,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
 
-      <div className="p-4 flex flex-col h-40">
+      <div className="p-4 flex flex-col min-h-32">
         <div className="text-[10px] uppercase tracking-wider text-brand-muted font-semibold mb-1">
           {product.category}
         </div>
-        <h3 className="font-display font-bold text-base line-clamp-1 mb-1">
+        <h3 className="font-display font-medium text-lg leading-tight line-clamp-2 mb-2">
           {product.name}
         </h3>
-        <p className="text-xs text-brand-muted line-clamp-2 mb-auto leading-tight">
-          {product.description}
-        </p>
-        <div className="mt-4 flex flex-col">
+        
+        <div className="mt-auto flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-display font-bold text-xl text-brand-accent">
               {formatPrice(product.price)}

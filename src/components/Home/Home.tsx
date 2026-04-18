@@ -9,7 +9,7 @@ import NoticeArea from './NoticeArea';
 import ProductCard from './ProductCard';
 import { formatPrice } from '../../lib/utils';
 import { motion } from 'motion/react';
-import { Star } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,7 +17,8 @@ export default function Home() {
   const [config, setConfig] = useState<StoreConfig>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(false);
+  const [visibleItems, setVisibleItems] = useState(12);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     // Sync Products
@@ -81,11 +82,9 @@ export default function Home() {
   const isSearchEmpty = searchQuery.trim() === '';
   
   // Responsive slice limit
-  const [initialLimit, setInitialLimit] = useState(12);
-  
   useEffect(() => {
     const handleResize = () => {
-      setInitialLimit(window.innerWidth < 1024 ? 6 : 12);
+      setVisibleItems(window.innerWidth < 1024 ? 6 : 12);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -93,11 +92,11 @@ export default function Home() {
   }, []);
 
   const displayProducts = isSearchEmpty
-    ? (showAll ? filteredProducts : filteredProducts.slice(0, initialLimit))
+    ? filteredProducts.slice(0, visibleItems)
     : filteredProducts;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
       <Navbar onSearch={setSearchQuery} config={config} />
       <Hero config={config} />
       <NoticeArea currentNotice={latestNotice} />
@@ -139,7 +138,8 @@ export default function Home() {
                   key={item.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px]"
+                  onClick={() => setSelectedProduct(item)}
+                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px] cursor-pointer"
                 >
                   <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm">
                     {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
@@ -186,7 +186,7 @@ export default function Home() {
         {displayProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {displayProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} onClick={setSelectedProduct} />
             ))}
           </div>
         ) : (
@@ -200,17 +200,89 @@ export default function Home() {
           </div>
         )}
 
-        {isSearchEmpty && !showAll && products.length > initialLimit && (
+        {isSearchEmpty && filteredProducts.length > visibleItems && (
           <div className="mt-12 text-center">
             <button
-              onClick={() => setShowAll(true)}
+              onClick={() => setVisibleItems(prev => prev + 6)}
               className="editorial-btn-primary"
             >
-              See All {products.length} Products
+              See More
             </button>
           </div>
         )}
       </main>
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedProduct(null)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative bg-white w-full max-w-2xl editorial-card overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+          >
+            <button 
+              onClick={() => setSelectedProduct(null)}
+              className="absolute top-4 right-4 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-full md:w-1/2 aspect-square bg-gray-50 flex-shrink-0">
+              <img 
+                src={selectedProduct.imageUrl || `https://picsum.photos/seed/${selectedProduct.id}/600/600`} 
+                alt={selectedProduct.name} 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            <div className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto">
+              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-accent mb-2">
+                {selectedProduct.category}
+              </div>
+              <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 leading-tight">
+                {selectedProduct.name}
+              </h2>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl font-display font-bold text-brand-accent">
+                  {formatPrice(selectedProduct.price)}
+                </span>
+                {selectedProduct.mrp && selectedProduct.mrp > selectedProduct.price && (
+                  <div className="flex flex-col">
+                    <span className="text-xs text-brand-muted line-through">
+                      {formatPrice(selectedProduct.mrp)}
+                    </span>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                      SAVE {formatPrice(selectedProduct.mrp - selectedProduct.price)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-brand-border pt-6 mt-auto">
+                <h4 className="text-[10px] uppercase font-bold text-gray-400 mb-2">Description</h4>
+                <p className="text-sm md:text-base text-brand-muted leading-relaxed italic">
+                  {selectedProduct.description || "No specific details available for this item."}
+                </p>
+              </div>
+
+              {!selectedProduct.available && (
+                <div className="mt-6 p-3 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded text-center">
+                  Currently Out of Stock
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <footer className="border-t border-brand-border py-10 px-6 text-center text-xs text-brand-muted uppercase tracking-[0.2em]">
         &copy; {new Date().getFullYear()} Raj Kirana Store &bull; Quality and Freshness
