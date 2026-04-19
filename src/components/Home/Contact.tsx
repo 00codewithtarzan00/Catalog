@@ -6,14 +6,11 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { StoreConfig } from '../../types';
 
-export default function Contact() {
-  const [config, setConfig] = useState<StoreConfig>({});
+interface ContactProps {
+  config: StoreConfig;
+}
 
-  useEffect(() => {
-    return onSnapshot(doc(db, 'config', 'global'), (snap) => {
-      if (snap.exists()) setConfig(snap.data() as StoreConfig);
-    });
-  }, []);
+export default function Contact({ config }: ContactProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

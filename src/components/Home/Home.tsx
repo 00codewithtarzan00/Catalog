@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, limit, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product, Notice, StoreConfig } from '../../types';
 import { CATEGORIES } from '../../constants';
@@ -11,23 +11,105 @@ import { formatPrice } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { Star, X } from 'lucide-react';
 
-export default function Home() {
+interface HomeProps {
+  config: StoreConfig;
+  onReady: () => void;
+}
+
+export default function Home({ config, onReady }: HomeProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [config, setConfig] = useState<StoreConfig>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  const [dataStatus, setDataStatus] = useState({ 
+    products: false, 
+    notices: false, 
+    hero: false, 
+    logo: false, 
+    configReceived: false,
+    prodImages: false 
+  });
+
+  const isSearchEmpty = searchQuery.trim() === '';
+
+  // CORE ASSET PRELOADING (Hero & Logo)
+  useEffect(() => {
+    if (Object.keys(config).length > 0) {
+      setDataStatus(prev => ({ ...prev, configReceived: true }));
+      
+      const preloadImage = (url: string, key: 'hero' | 'logo') => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => setDataStatus(prev => ({ ...prev, [key]: true }));
+        img.onerror = () => setDataStatus(prev => ({ ...prev, [key]: true }));
+      };
+
+      if (config.heroImageUrl) preloadImage(config.heroImageUrl, 'hero');
+      else setDataStatus(prev => ({ ...prev, hero: true }));
+
+      if (config.logoUrl) preloadImage(config.logoUrl, 'logo');
+      else setDataStatus(prev => ({ ...prev, logo: true }));
+    }
+  }, [config]);
+
+  // PRODUCT IMAGE PRELOADING
+  useEffect(() => {
+    if (products.length > 0) {
+      const topProducts = products.slice(0, 4); // Preload first 4 product images
+      let loadedCount = 0;
+      
+      if (topProducts.filter(p => p.imageUrl).length === 0) {
+        setDataStatus(prev => ({ ...prev, prodImages: true }));
+        return;
+      }
+
+      topProducts.forEach(p => {
+        if (p.imageUrl) {
+          const img = new Image();
+          img.src = p.imageUrl;
+          img.onload = () => {
+            loadedCount++;
+            if (loadedCount >= topProducts.filter(p => p.imageUrl).length) {
+              setDataStatus(prev => ({ ...prev, prodImages: true }));
+            }
+          };
+          img.onerror = () => {
+            loadedCount++;
+            if (loadedCount >= topProducts.filter(p => p.imageUrl).length) {
+              setDataStatus(prev => ({ ...prev, prodImages: true }));
+            }
+          };
+        }
+      });
+    }
+  }, [products]);
 
   useEffect(() => {
-    // Sync Products
-    const productsQuery = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    // Sync Products with dynamic limit for pagination
+    let productsQuery = query(
+      collection(db, 'products'), 
+      orderBy('createdAt', 'desc'),
+      limit(isSearchEmpty ? visibleItems + 1 : 1000)
+    );
+
+    if (selectedCategory) {
+      productsQuery = query(
+        collection(db, 'products'),
+        where('category', '==', selectedCategory),
+        orderBy('createdAt', 'desc'),
+        limit(visibleItems + 1)
+      );
+    }
+
     const unsubProducts = onSnapshot(
       productsQuery,
       (snapshot) => {
         const prodData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
         setProducts(prodData);
+        setDataStatus(prev => ({ ...prev, products: true }));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'products')
     );
@@ -39,33 +121,32 @@ export default function Home() {
       (snapshot) => {
         const noticeData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Notice));
         setNotices(noticeData);
+        setDataStatus(prev => ({ ...prev, notices: true }));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'notices')
-    );
-
-    // Sync Config
-    const unsubConfig = onSnapshot(
-      doc(db, 'config', 'global'),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setConfig(snapshot.data() as StoreConfig);
-        }
-      },
-      (error) => handleFirestoreError(error, OperationType.GET, 'config/global')
     );
 
     return () => {
       unsubProducts();
       unsubNotices();
-      unsubConfig();
     };
-  }, []);
+  }, [visibleItems, selectedCategory, isSearchEmpty]);
+
+  // SIGNAL READY WHEN ALL KEY ASSETS ARE FULLY LOADED
+  useEffect(() => {
+    const { configReceived, products, notices, hero, logo, prodImages } = dataStatus;
+    if (configReceived && products && notices && hero && logo && prodImages) {
+      // Allow DOM to paint
+      const timer = setTimeout(onReady, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [dataStatus, onReady]);
 
   const latestNotice = notices.length > 0 ? notices[0] : null;
 
   // Search & Category Logic
   const filteredProducts = products.filter((p) => {
-    const matchesSearch = searchQuery.trim() === '' || (
+    const matchesSearch = isSearchEmpty || (
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -77,9 +158,6 @@ export default function Home() {
   });
 
   const specialItems = products.filter(p => p.isSpecial).slice(0, 2);
-
-  // If searching for unavailable item, show categorization
-  const isSearchEmpty = searchQuery.trim() === '';
   
   // Responsive slice limit
   useEffect(() => {
@@ -91,9 +169,10 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const hasMore = products.length > visibleItems;
   const displayProducts = isSearchEmpty
-    ? filteredProducts.slice(0, visibleItems)
-    : filteredProducts;
+    ? products.slice(0, visibleItems)
+    : filteredProducts.slice(0, visibleItems);
 
   return (
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
@@ -200,7 +279,7 @@ export default function Home() {
           </div>
         )}
 
-        {isSearchEmpty && filteredProducts.length > visibleItems && (
+        {hasMore && (
           <div className="mt-12 text-center">
             <button
               onClick={() => setVisibleItems(prev => prev + 6)}

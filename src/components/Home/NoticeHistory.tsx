@@ -4,7 +4,13 @@ import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Notice } from '../../types';
 import Navbar from './Navbar';
 
-export default function NoticeHistory() {
+import { StoreConfig } from '../../types';
+
+interface NoticeHistoryProps {
+  config?: StoreConfig;
+}
+
+export default function NoticeHistory({ config }: NoticeHistoryProps) {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
@@ -21,7 +27,7 @@ export default function NoticeHistory() {
 
   return (
     <div className="min-h-screen bg-brand-bg flex flex-col">
-      <Navbar onSearch={() => {}} />
+      <Navbar onSearch={() => {}} config={config} />
       
       <main className="flex-1 px-6 md:px-10 py-12 max-w-4xl mx-auto w-full">
         <header className="mb-12 border-b-2 border-brand-accent pb-4 flex items-end justify-between">

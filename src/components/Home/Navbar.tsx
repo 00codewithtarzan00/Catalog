@@ -99,12 +99,12 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
             {isMenuOpen ? <X className="w-6 h-6 text-brand-accent" /> : <Menu className="w-6 h-6 text-brand-accent" />}
           </button>
 
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-brand-accent bg-gray-50 flex-shrink-0">
+          <Link to="/" className="flex items-center gap-2 group mr-2">
+            <div className="w-12 h-12 rounded-full border-2 border-brand-accent bg-white flex-shrink-0 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
                <img 
                  src={LOGO_URL} 
                  alt="Logo" 
-                 className="w-full h-full object-cover"
+                 className="max-w-full max-h-full object-contain"
                  onError={(e) => {
                    // Fallback if the link isn't a direct image
                    (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/store/100/100';

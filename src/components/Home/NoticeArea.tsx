@@ -28,7 +28,7 @@ export default function NoticeArea({ currentNotice }: NoticeAreaProps) {
               Shop Status
             </h4>
             <p className="text-sm md:text-base text-brand-muted mt-1 italic">
-              Opens daily (Sunday - Monday) : 6am - 8pm
+              Opens daily (Monday - Sunday) : 6am - 8pm
             </p>
           </div>
         )}

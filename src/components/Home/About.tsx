@@ -6,14 +6,11 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { StoreConfig } from '../../types';
 
-export default function About() {
-  const [config, setConfig] = useState<StoreConfig>({});
+interface AboutProps {
+  config: StoreConfig;
+}
 
-  useEffect(() => {
-    return onSnapshot(doc(db, 'config', 'global'), (snap) => {
-      if (snap.exists()) setConfig(snap.data() as StoreConfig);
-    });
-  }, []);
+export default function About({ config }: AboutProps) {
 
   const stats = [
     { icon: <Package className="w-6 h-6" />, label: "Wide Variety", desc: "From staples to cosmetics" },
