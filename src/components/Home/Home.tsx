@@ -159,12 +159,21 @@ export default function Home({ config, onReady }: HomeProps) {
 
   const specialItems = products.filter(p => p.isSpecial).slice(0, 2);
   
-  // Responsive slice limit
+  // Responsive slice limit - only update if width changes to avoid scroll-induced resets on mobile
   useEffect(() => {
+    let lastWidth = window.innerWidth;
+    
     const handleResize = () => {
-      setVisibleItems(window.innerWidth < 1024 ? 6 : 12);
+      const currentWidth = window.innerWidth;
+      if (currentWidth !== lastWidth) {
+        lastWidth = currentWidth;
+        setVisibleItems(currentWidth < 1024 ? 6 : 12);
+      }
     };
-    handleResize();
+    
+    // Initial set
+    setVisibleItems(window.innerWidth < 1024 ? 6 : 12);
+    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
