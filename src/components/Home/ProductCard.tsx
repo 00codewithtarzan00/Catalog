@@ -21,6 +21,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
           src={product.imageUrl || `https://picsum.photos/seed/${product.id}/400/400`}
           alt={product.name}
           referrerPolicy="no-referrer"
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.available ? 'grayscale brightness-90' : ''}`}
         />
 

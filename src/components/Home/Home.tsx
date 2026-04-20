@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, limit, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product, Notice, StoreConfig } from '../../types';
@@ -23,6 +23,7 @@ export default function Home({ config, onReady }: HomeProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   const [dataStatus, setDataStatus] = useState({ 
     products: false, 
@@ -32,6 +33,9 @@ export default function Home({ config, onReady }: HomeProps) {
     configReceived: false,
     prodImages: false 
   });
+  
+  const observer = useRef<IntersectionObserver | null>(null);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   const isSearchEmpty = searchQuery.trim() === '';
 
@@ -136,12 +140,13 @@ export default function Home({ config, onReady }: HomeProps) {
   useEffect(() => {
     const { configReceived, products, notices, hero, logo, prodImages } = dataStatus;
     if (configReceived && products && notices && hero && logo && prodImages) {
-      // Allow DOM to paint
+      setIsInitialLoad(false);
       const timer = setTimeout(onReady, 600);
       return () => clearTimeout(timer);
     }
   }, [dataStatus, onReady]);
 
+  // INFINITE SCROLL OBSERVER
   const latestNotice = notices.length > 0 ? notices[0] : null;
 
   // Search & Category Logic
@@ -179,6 +184,20 @@ export default function Home({ config, onReady }: HomeProps) {
   }, []);
 
   const hasMore = products.length > visibleItems;
+
+  const lastElementRef = useCallback((node: HTMLDivElement | null) => {
+    if (isInitialLoad) return;
+    if (observer.current) observer.current.disconnect();
+    
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        // Debounce or slightly delay to prevent multiple calls
+        setVisibleItems(prev => prev + 8);
+      }
+    }, { rootMargin: '200px' });
+
+    if (node) observer.current.observe(node);
+  }, [hasMore, isInitialLoad]);
   const displayProducts = isSearchEmpty
     ? products.slice(0, visibleItems)
     : filteredProducts.slice(0, visibleItems);
@@ -289,13 +308,11 @@ export default function Home({ config, onReady }: HomeProps) {
         )}
 
         {hasMore && (
-          <div className="mt-12 text-center">
-            <button
-              onClick={() => setVisibleItems(prev => prev + 6)}
-              className="editorial-btn-primary"
-            >
-              See More
-            </button>
+          <div ref={lastElementRef} className="mt-12 py-10 flex flex-col items-center justify-center gap-4">
+            <div className="w-8 h-8 border-2 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin" />
+            <p className="text-[10px] uppercase font-bold tracking-widest text-brand-muted animate-pulse">
+              Fetching more products...
+            </p>
           </div>
         )}
       </main>
