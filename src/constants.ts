@@ -6,7 +6,8 @@ export const CATEGORIES = [
   "Home Essentials (Ghar Ki Jarurat)",
   "Beverages (Peene wali cheezein)",
   "Snacks & Branded Foods",
-  "Cosmetics (Shringar ka Saaman)"
+  "Cosmetics (Shringar ka Saaman)",
+  "Stationery (Lekhan Samagri)"
 ] as const;
 
 export type Category = typeof CATEGORIES[number];
