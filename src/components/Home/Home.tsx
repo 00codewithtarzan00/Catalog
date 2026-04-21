@@ -220,7 +220,7 @@ export default function Home({ config, onReady }: HomeProps) {
               <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${!selectedCategory ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
                 <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
                   <img 
-                    src="https://picsum.photos/seed/shop/120/120" 
+                    src={config.allCategoriesImageUrl || "https://picsum.photos/seed/shop/120/120"} 
                     alt="All"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"

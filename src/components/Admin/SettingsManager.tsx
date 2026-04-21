@@ -11,7 +11,8 @@ export default function SettingsManager() {
     heroImageUrl: '',
     heroSlogan: '',
     aboutText: '',
-    categoryImages: {}
+    categoryImages: {},
+    allCategoriesImageUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -19,6 +20,7 @@ export default function SettingsManager() {
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
+  const allCatFileRef = useRef<HTMLInputElement>(null);
   const categoryFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
@@ -214,13 +216,60 @@ export default function SettingsManager() {
                 className="flex items-center justify-between w-full py-2 hover:bg-gray-50 transition-colors rounded px-2 -mx-2"
               >
                 <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted flex items-center gap-2">
-                  <ImageIcon className="w-3.5 h-3.5" /> Category Icons (Amazon Style)
+                  <ImageIcon className="w-3.5 h-3.5" /> Category Icons
                 </h3>
                 {showCategorySettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
 
               {showCategorySettings && (
                 <div className="mt-6 space-y-6">
+                  {/* All Items Category */}
+                  <div className="p-4 bg-brand-accent/5 border border-brand-accent/20 rounded-lg space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-brand-accent uppercase tracking-tight">
+                        All Items (Sab Saaman)
+                      </label>
+                    </div>
+                    
+                    <div className="flex gap-4 items-center">
+                      <div className="w-16 h-16 bg-white border border-brand-accent rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-sm">
+                        {config.allCategoriesImageUrl ? (
+                          <img src={config.allCategoriesImageUrl} alt="All Items" className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <div className="text-[10px] text-gray-300 font-bold text-center">No Image</div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            className="editorial-input h-9 px-3 text-[11px]"
+                            placeholder="Image URL"
+                            value={config.allCategoriesImageUrl || ''}
+                            onChange={e => setConfig(prev => ({ ...prev, allCategoriesImageUrl: e.target.value }))}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => allCatFileRef.current?.click()}
+                            disabled={uploading === 'allCategoriesImageUrl'}
+                            className="editorial-btn-secondary h-9 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                          >
+                            <Upload className={`w-3.5 h-3.5 ${uploading === 'allCategoriesImageUrl' ? 'animate-bounce' : ''}`} />
+                          </button>
+                        </div>
+                        <input 
+                          type="file" 
+                          ref={allCatFileRef}
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={(e) => handleFileUpload(e, 'allCategoriesImageUrl')} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-brand-border my-4" />
+
                   {CATEGORIES.map((cat) => (
                     <div key={cat} className="p-4 bg-gray-50 border border-brand-border rounded-lg space-y-4">
                       <div className="flex items-center justify-between">
