@@ -28,4 +28,5 @@ export interface StoreConfig {
   heroImageUrl?: string;
   heroSlogan?: string;
   aboutText?: string;
+  categoryImages?: Record<string, string>; // Maps category name to image URL
 }

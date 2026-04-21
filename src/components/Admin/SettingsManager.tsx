@@ -2,32 +2,42 @@ import React, { useState, useEffect, useRef } from 'react';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { StoreConfig } from '../../types';
-import { Save, Image as ImageIcon, Type, Upload } from 'lucide-react';
+import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { CATEGORIES } from '../../constants';
 
 export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
     logoUrl: '',
     heroImageUrl: '',
     heroSlogan: '',
-    aboutText: ''
+    aboutText: '',
+    categoryImages: {}
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showCategorySettings, setShowCategorySettings] = useState(false);
+  
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
+  const categoryFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     return onSnapshot(doc(db, 'config', 'global'), (snap) => {
-      if (snap.exists()) setConfig(snap.data() as StoreConfig);
+      if (snap.exists()) {
+        const data = snap.data() as StoreConfig;
+        setConfig({
+          ...data,
+          categoryImages: data.categoryImages || {}
+        });
+      }
     });
   }, []);
 
   const [uploading, setUploading] = useState<string | null>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'heroImageUrl') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: string, isCategory: boolean = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Modern phone gallery images are large. Limit to 1,048,487 bytes (1MB) strictly for Firestore safety.
       if (file.size > 1000000) { 
         alert("Image quality is too high! Please use an image smaller than 1MB for fast loading.");
         return;
@@ -36,20 +46,25 @@ export default function SettingsManager() {
       setUploading(field);
       const reader = new FileReader();
       
-      reader.onloadstart = () => {
-        console.log(`Starting upload for ${field}`);
-      };
-
       reader.onloadend = () => {
         const result = reader.result as string;
-        setConfig(prev => ({ ...prev, [field]: result }));
-        console.log(`Upload complete for ${field}`);
+        if (isCategory) {
+          setConfig(prev => ({
+            ...prev,
+            categoryImages: {
+              ...(prev.categoryImages || {}),
+              [field]: result
+            }
+          }));
+        } else {
+          setConfig(prev => ({ ...prev, [field]: result }));
+        }
         setUploading(null);
-        e.target.value = ''; // Reset input to allow re-upload if needed
+        e.target.value = '';
       };
 
       reader.onerror = () => {
-        alert("Failed to read image file. Please try another one.");
+        alert("Failed to read image file.");
         setUploading(null);
       };
 
@@ -189,6 +204,76 @@ export default function SettingsManager() {
               <p className="text-[10px] text-brand-muted leading-tight">
                 This slogan appears in the header section of your homepage.
               </p>
+            </div>
+
+            {/* Category Images Section */}
+            <div className="pt-4 border-t border-brand-border">
+              <button 
+                type="button"
+                onClick={() => setShowCategorySettings(!showCategorySettings)}
+                className="flex items-center justify-between w-full py-2 hover:bg-gray-50 transition-colors rounded px-2 -mx-2"
+              >
+                <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted flex items-center gap-2">
+                  <ImageIcon className="w-3.5 h-3.5" /> Category Icons (Amazon Style)
+                </h3>
+                {showCategorySettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {showCategorySettings && (
+                <div className="mt-6 space-y-6">
+                  {CATEGORIES.map((cat) => (
+                    <div key={cat} className="p-4 bg-gray-50 border border-brand-border rounded-lg space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-brand-accent uppercase tracking-tight truncate max-w-[70%]">
+                          {cat}
+                        </label>
+                      </div>
+                      
+                      <div className="flex gap-4 items-center">
+                        <div className="w-16 h-16 bg-white border border-brand-border rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-sm">
+                          {config.categoryImages?.[cat] ? (
+                            <img src={config.categoryImages[cat]} alt={cat} className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <div className="text-[10px] text-gray-300 font-bold text-center">No Image</div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              className="editorial-input h-9 px-3 text-[11px]"
+                              placeholder="Image URL"
+                              value={config.categoryImages?.[cat] || ''}
+                              onChange={e => setConfig(prev => ({
+                                ...prev,
+                                categoryImages: {
+                                  ...(prev.categoryImages || {}),
+                                  [cat]: e.target.value
+                                }
+                              }))}
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => categoryFileRefs.current[cat]?.click()}
+                              disabled={uploading === cat}
+                              className="editorial-btn-secondary h-9 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                            >
+                              <Upload className={`w-3.5 h-3.5 ${uploading === cat ? 'animate-bounce' : ''}`} />
+                            </button>
+                          </div>
+                          <input 
+                            type="file" 
+                            ref={el => { categoryFileRefs.current[cat] = el; }}
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileUpload(e, cat, true)} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

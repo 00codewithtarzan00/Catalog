@@ -50,3 +50,11 @@
 .editorial-input {
   @apply bg-gray-100 border-none rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-brand-accent outline-none w-full;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

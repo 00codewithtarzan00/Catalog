@@ -33,7 +33,8 @@
       "properties": {
         "logoUrl": { "type": "string", "format": "url" },
         "heroImageUrl": { "type": "string", "format": "url" },
-        "aboutText": { "type": "string" }
+        "aboutText": { "type": "string" },
+        "categoryImages": { "type": "object", "description": "Mapping of category names to image URLs" }
       }
     }
   },

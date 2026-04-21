@@ -208,24 +208,67 @@ export default function Home({ config, onReady }: HomeProps) {
       <Hero config={config} />
       <NoticeArea currentNotice={latestNotice} />
 
-      {/* Categories Filter Section */}
-      <section className="bg-white border-b border-brand-border py-6 px-4 md:px-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.2em] text-brand-muted shrink-0">Browse Shop</h2>
-          <div className="relative w-full max-w-sm">
-            <select
-              onChange={(e) => setSelectedCategory(e.target.value === 'all' ? null : e.target.value)}
-              value={selectedCategory || 'all'}
-              className="w-full h-11 px-4 bg-gray-50 border border-brand-border rounded-md font-sans text-sm font-semibold appearance-none cursor-pointer focus:outline-none focus:border-brand-accent transition-colors"
+      {/* Categories Filter Section - Amazon/Flipkart style */}
+      <section className="bg-white border-b border-brand-border py-4 md:py-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 md:px-10">
+          <div className="flex items-center gap-6 overflow-x-auto pb-4 scrollbar-hide no-scrollbar -mx-4 px-4 mask-fade-right">
+            {/* All Categories */}
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="flex flex-col items-center gap-2 group min-w-[70px] md:min-w-[90px] flex-shrink-0"
             >
-              <option value="all">All Categories (Sab Saaman)</option>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-accent">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
+              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${!selectedCategory ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
+                <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                  <img 
+                    src="https://picsum.photos/seed/shop/120/120" 
+                    alt="All"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+              <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors ${!selectedCategory ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
+                All items
+              </span>
+            </button>
+
+            {CATEGORIES.map((cat) => {
+              const categorySeeds: Record<string, string> = {
+                "Daily Essentials (Rozana ka Saaman)": "milk",
+                "Groceries & Staples (Rashan)": "grains",
+                "Personal Care (Khud ki Dekhbhal)": "skincare",
+                "Home Essentials (Ghar Ki Jarurat)": "cleaning",
+                "Beverages (Peene wali cheezein)": "drinks",
+                "Cosmetics (Shringar ka Saaman)": "makeup",
+                "Stationery (Lekhan Samagri)": "pencils"
+              };
+
+              const seed = categorySeeds[cat] || "grocery";
+              const isSelected = selectedCategory === cat;
+              const catImageUrl = config.categoryImages?.[cat] || `https://picsum.photos/seed/${seed}/120/120`;
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="flex flex-col items-center gap-2 group min-w-[70px] md:min-w-[90px] flex-shrink-0"
+                >
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${isSelected ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
+                    <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                      <img 
+                        src={catImageUrl} 
+                        alt={cat}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  </div>
+                  <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors line-clamp-2 leading-tight px-1 ${isSelected ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
+                    {cat.split(' (')[0]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
