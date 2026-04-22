@@ -34,6 +34,21 @@ export default function Home({ config }: HomeProps) {
   const isSearchEmpty = searchQuery.trim() === '';
 
   useEffect(() => {
+    // Dynamic SEO update
+    document.title = "Raj Kirana Store | Online Grocery & Daily Essentials Shop";
+    
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Raj Kirana Store par payein har tarah ka rashan, snacks aur ghar ka saaman behtarin daam par. Quality products aur daily essentials ke liye hamari site visit karein.');
+    }
+
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.setAttribute('content', 'Raj Kirana Store, Grocery Store, Rashan shop, Daily Essentials, General Store, Online Kirana');
+    }
+  }, []);
+
+  useEffect(() => {
     // Sync Products with dynamic limit for pagination
     let productsQuery = query(
       collection(db, 'products'), 
