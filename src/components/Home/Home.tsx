@@ -269,7 +269,7 @@ export default function Home({ config }: HomeProps) {
                         <img 
                           src={item.imageUrl} 
                           alt={item.name} 
-                          className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                          className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110"
                           referrerPolicy="no-referrer"
                         />
                       ) : (
@@ -375,7 +375,7 @@ export default function Home({ config }: HomeProps) {
                 <img 
                   src={selectedProduct.imageUrl} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-6"
                   referrerPolicy="no-referrer"
                 />
               ) : (

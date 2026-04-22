@@ -23,7 +23,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             alt={product.name}
             referrerPolicy="no-referrer"
             loading="lazy"
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.available ? 'grayscale brightness-90' : ''}`}
+            className={`w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 ${!product.available ? 'grayscale brightness-90' : ''}`}
           />
         ) : (
           <div className="w-full h-full bg-gray-50 flex items-center justify-center">
