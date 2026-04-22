@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, limit, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { Product, Notice, StoreConfig } from '../../types';
+import { Product, StoreConfig } from '../../types';
 import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
-import NoticeArea from './NoticeArea';
 import ProductCard from './ProductCard';
 import { formatPrice } from '../../lib/utils';
 import { motion } from 'motion/react';
@@ -17,7 +16,6 @@ interface HomeProps {
 
 export default function Home({ config, onReady }: HomeProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [notices, setNotices] = useState<Notice[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [visibleItems, setVisibleItems] = useState(12);
@@ -26,10 +24,9 @@ export default function Home({ config, onReady }: HomeProps) {
   
   const [dataStatus, setDataStatus] = useState({ 
     products: false, 
-    notices: false, 
-    logo: false, 
-    configReceived: false,
-    prodImages: false 
+    logo: true, // simplified
+    configReceived: true, // simplified
+    prodImages: true  // simplified
   });
   
   const observer = useRef<IntersectionObserver | null>(null);
@@ -37,21 +34,12 @@ export default function Home({ config, onReady }: HomeProps) {
 
   const isSearchEmpty = searchQuery.trim() === '';
 
-  // REMOVED PRELOADING LOGIC AS PER USER REQUEST TO SPEED UP
-  useEffect(() => {
-    if (Object.keys(config).length > 0 && products.length >= 0) {
-      // Just signal ready once we have data, don't wait for images
-      onReady();
-      setIsInitialLoad(false);
-    }
-  }, [config, products, onReady]);
-
   useEffect(() => {
     // Sync Products with dynamic limit for pagination
     let productsQuery = query(
       collection(db, 'products'), 
       orderBy('createdAt', 'desc'),
-      limit(isSearchEmpty ? visibleItems + 1 : 1000)
+      limit(isSearchEmpty ? 100 : 1000)
     );
 
     if (selectedCategory) {
@@ -67,49 +55,37 @@ export default function Home({ config, onReady }: HomeProps) {
       productsQuery,
       (snapshot) => {
         const prodData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
-        setProducts(prodData);
+        // Sort: special items first, then by date
+        const sortedData = prodData.sort((a, b) => {
+          if (a.isSpecial && !b.isSpecial) return -1;
+          if (!a.isSpecial && b.isSpecial) return 1;
+          return b.createdAt - a.createdAt;
+        });
+        setProducts(sortedData);
         setDataStatus(prev => ({ ...prev, products: true }));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'products')
     );
 
-    // Sync Notices
-    const noticesQuery = query(collection(db, 'notices'), orderBy('createdAt', 'desc'));
-    const unsubNotices = onSnapshot(
-      noticesQuery,
-      (snapshot) => {
-        const noticeData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Notice));
-        setNotices(noticeData);
-        setDataStatus(prev => ({ ...prev, notices: true }));
-      },
-      (error) => handleFirestoreError(error, OperationType.GET, 'notices')
-    );
-
     return () => {
       unsubProducts();
-      unsubNotices();
     };
   }, [visibleItems, selectedCategory, isSearchEmpty]);
 
   // SIGNAL READY WHEN ALL KEY ASSETS ARE FULLY LOADED
   useEffect(() => {
-    const { configReceived, products, notices, logo, prodImages } = dataStatus;
-    if (configReceived && products && notices && logo && prodImages) {
+    if (dataStatus.products) {
       setIsInitialLoad(false);
       const timer = setTimeout(onReady, 600);
       return () => clearTimeout(timer);
     }
-  }, [dataStatus, onReady]);
-
-  // INFINITE SCROLL OBSERVER
-  const latestNotice = notices.length > 0 ? notices[0] : null;
+  }, [dataStatus.products, onReady]);
 
   // Search & Category Logic
   const filteredProducts = products.filter((p) => {
     const matchesSearch = isSearchEmpty || (
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      p.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
     
     const matchesCategory = !selectedCategory || p.category === selectedCategory;
@@ -160,12 +136,21 @@ export default function Home({ config, onReady }: HomeProps) {
   return (
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
       <Navbar onSearch={setSearchQuery} config={config} />
-      <NoticeArea currentNotice={latestNotice} />
 
-      {/* Categories Filter Section - Amazon/Flipkart style */}
-      <section className="bg-white border-b border-brand-border py-4 md:py-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 md:px-10">
-          <div className="flex items-center gap-6 overflow-x-auto pb-4 scrollbar-hide no-scrollbar -mx-4 px-4 mask-fade-right">
+      {/* Categories Filter Section - Amazon/Flipkart style with background */}
+      <section className="relative border-b border-brand-border py-1 md:py-2">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img 
+            src={config.heroImageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000"} 
+            alt="Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10 pt-2 pb-0">
+          <div className="flex items-center gap-6 overflow-x-auto pb-2 pt-1 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
             {/* All Categories */}
             <button
               onClick={() => setSelectedCategory(null)}
@@ -228,13 +213,15 @@ export default function Home({ config, onReady }: HomeProps) {
         </div>
       </section>
 
-      {/* Special Discounted Section */}
-      {specialItems.length > 0 && (
-        <section className="bg-brand-accent/5 py-12 px-4 md:px-10 border-b border-brand-border">
+      {/* Main Product Feed */}
+
+      {/* Dhamaka Deals Section - Grid Layout */}
+      {!selectedCategory && isSearchEmpty && specialItems.length > 0 && (
+        <section className="bg-blue-100/50 py-12 px-4 md:px-10 border-b border-brand-accent/5 shadow-inner">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
-              <Star className="w-5 h-5 text-brand-accent fill-brand-accent" />
-              <h2 className="font-display text-2xl font-bold text-brand-accent tracking-tight underline decoration-1 underline-offset-8">Dhamaka Deals (Special Offers)</h2>
+              <Star className="w-5 h-5 text-brand-accent fill-brand-accent animate-pulse" />
+              <h2 className="font-display text-2xl font-bold text-brand-accent tracking-tight uppercase underline decoration-2 underline-offset-8 decoration-brand-accent/20">Dhamaka Deals (Special Offers)</h2>
             </div>
             
             <div className={`grid gap-6 ${specialItems.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:max-w-6xl'}`}>
@@ -244,9 +231,9 @@ export default function Home({ config, onReady }: HomeProps) {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   onClick={() => setSelectedProduct(item)}
-                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px] cursor-pointer"
+                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px] cursor-pointer hover:shadow-2xl transition-all"
                 >
-                  <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm">
+                  <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm z-10">
                     {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
                   </div>
                   
@@ -269,7 +256,7 @@ export default function Home({ config, onReady }: HomeProps) {
                       <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1 rounded animate-pulse">Save ₹{item.mrp - item.price}</span>
                     </div>
                     <h3 className="font-display text-2xl font-bold mb-2 leading-tight break-words">{item.name}</h3>
-                    <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words">"{item.description}"</p>
+                    <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words line-clamp-2">"{item.description}"</p>
                     
                     <div className="flex items-end gap-3 mt-auto">
                       <div className="flex flex-col">

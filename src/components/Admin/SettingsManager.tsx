@@ -147,6 +147,53 @@ export default function SettingsManager() {
               </div>
             </div>
             
+            <div className="space-y-3 pt-2">
+              <label className="text-xs font-bold flex items-center gap-2">
+                <ImageIcon className="w-3.5 h-3.5" /> Home Page Background
+              </label>
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-gray-50 border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
+                  {config.heroImageUrl ? (
+                    <img src={config.heroImageUrl} alt="Bg Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4 text-gray-300" />
+                  )}
+                </div>
+                
+                <div className="flex-1 space-y-1">
+                  <div className="flex gap-2">
+                    <input
+                      className="editorial-input h-10"
+                      placeholder="Background Image URL"
+                      value={config.heroImageUrl || ''}
+                      onChange={e => setConfig({ ...config, heroImageUrl: e.target.value })}
+                    />
+                    <button 
+                      type="button" 
+                      disabled={uploading === 'heroImageUrl'}
+                      onClick={() => heroFileRef.current?.click()}
+                      className="editorial-btn-secondary h-10 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                    >
+                      <Upload className={`w-4 h-4 ${uploading === 'heroImageUrl' ? 'animate-bounce' : ''}`} /> 
+                      <span className="text-[10px] hidden md:inline">
+                        {uploading === 'heroImageUrl' ? 'Reading...' : 'Upload'}
+                      </span>
+                    </button>
+                  </div>
+                  <input 
+                    type="file" 
+                    ref={heroFileRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => handleFileUpload(e, 'heroImageUrl')} 
+                  />
+                  <p className="text-[10px] text-brand-muted italic leading-none">
+                    This image will appear blurred behind the category filters.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="pt-4 border-t border-brand-border">
               <button 
                 type="button"

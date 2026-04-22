@@ -31,11 +31,21 @@ export default function NoticeHistory({ config }: NoticeHistoryProps) {
       
       <main className="flex-1 px-6 md:px-10 py-12 max-w-4xl mx-auto w-full">
         <header className="mb-12 border-b-2 border-brand-accent pb-4 flex items-end justify-between">
-          <h1 className="text-4xl font-display font-black text-brand-accent uppercase tracking-tighter">
-            Notice Archive
-          </h1>
-          <div className="text-[10px] uppercase font-bold text-brand-muted tracking-widest mb-1">
-            Raj Kirana Store
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-display font-black text-brand-accent uppercase tracking-tighter">
+              Store Notices
+            </h1>
+            <p className="text-xs text-brand-muted font-medium mt-1">
+              Latest updates and announcements from Raj Kirana Store
+            </p>
+          </div>
+          <div className="text-right">
+             <div className="text-[10px] uppercase font-bold text-brand-accent tracking-widest">
+               Shop Status
+             </div>
+             <div className="text-[10px] font-bold text-brand-muted">
+               Daily 6am - 8pm
+             </div>
           </div>
         </header>
 
