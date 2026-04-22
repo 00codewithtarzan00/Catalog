@@ -35,7 +35,7 @@ export default function Home({ config }: HomeProps) {
 
   useEffect(() => {
     // Dynamic SEO update
-    document.title = "Raj Kirana Store - Online Grocery Shop";
+    document.title = "Raj Kirana Store";
     
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
