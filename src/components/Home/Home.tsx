@@ -216,7 +216,7 @@ export default function Home({ config, onReady }: HomeProps) {
       {/* Main Product Feed */}
 
       {/* Dhamaka Deals Section - Grid Layout */}
-      {!selectedCategory && isSearchEmpty && specialItems.length > 0 && (
+      {!selectedCategory && isSearchEmpty && (isInitialLoad || specialItems.length > 0) && (
         <section className="bg-blue-100/50 py-12 px-4 md:px-10 border-b border-brand-accent/5 shadow-inner">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
@@ -224,50 +224,66 @@ export default function Home({ config, onReady }: HomeProps) {
               <h2 className="font-display text-2xl font-bold text-brand-accent tracking-tight uppercase underline decoration-2 underline-offset-8 decoration-brand-accent/20">Dhamaka Deals (Special Offers)</h2>
             </div>
             
-            <div className={`grid gap-6 ${specialItems.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:max-w-6xl'}`}>
-              {specialItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={() => setSelectedProduct(item)}
-                  className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px] cursor-pointer hover:shadow-2xl transition-all"
-                >
-                  <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm z-10">
-                    {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
-                  </div>
-                  
-                  <div className="w-full md:w-40 aspect-square overflow-hidden bg-gray-50 flex-shrink-0 flex items-center justify-center">
-                    {item.imageUrl ? (
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <Star className="w-12 h-12 text-brand-accent/10" />
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col justify-center py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] uppercase font-bold text-brand-accent">{item.category}</span>
-                      <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1 rounded animate-pulse">Save ₹{item.mrp - item.price}</span>
+            {isInitialLoad ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:max-w-6xl gap-6">
+                 {[1, 2].map(i => (
+                   <div key={i} className="bg-white p-6 border-2 border-brand-accent/20 animate-pulse flex flex-col md:flex-row gap-6 h-[220px]">
+                     <div className="w-full md:w-40 aspect-square bg-gray-100 shrink-0" />
+                     <div className="flex-1 space-y-4 py-2">
+                       <div className="h-3 bg-gray-100 w-24" />
+                       <div className="h-8 bg-gray-100 w-3/4" />
+                       <div className="h-4 bg-gray-100 w-1/2" />
+                       <div className="h-10 bg-gray-100 w-32 mt-auto" />
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            ) : (
+              <div className={`grid gap-6 ${specialItems.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:max-w-6xl'}`}>
+                {specialItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    onClick={() => setSelectedProduct(item)}
+                    className="bg-white p-6 border-2 border-brand-accent relative flex flex-col md:flex-row gap-6 shadow-xl overflow-hidden group min-h-[220px] cursor-pointer hover:shadow-2xl transition-all"
+                  >
+                    <div className="absolute -top-10 -right-10 bg-brand-accent text-white w-24 h-24 flex items-end justify-center pb-4 rotate-45 transform font-bold text-sm z-10">
+                      {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
                     </div>
-                    <h3 className="font-display text-2xl font-bold mb-2 leading-tight break-words">{item.name}</h3>
-                    <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words line-clamp-2">"{item.description}"</p>
                     
-                    <div className="flex items-end gap-3 mt-auto">
-                      <div className="flex flex-col">
-                         <span className="text-xs text-brand-muted line-through font-bold">{formatPrice(item.mrp)}</span>
-                         <span className="text-4xl font-display font-black text-brand-accent">{formatPrice(item.price)}</span>
+                    <div className="w-full md:w-40 aspect-square overflow-hidden bg-gray-50 flex-shrink-0 flex items-center justify-center">
+                      {item.imageUrl ? (
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <Star className="w-12 h-12 text-brand-accent/10" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col justify-center py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] uppercase font-bold text-brand-accent">{item.category}</span>
+                        <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1 rounded animate-pulse">Save ₹{item.mrp - item.price}</span>
+                      </div>
+                      <h3 className="font-display text-2xl font-bold mb-2 leading-tight break-words">{item.name}</h3>
+                      <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words line-clamp-2">"{item.description}"</p>
+                      
+                      <div className="flex items-end gap-3 mt-auto">
+                        <div className="flex flex-col">
+                           <span className="text-xs text-brand-muted line-through font-bold">{formatPrice(item.mrp)}</span>
+                           <span className="text-4xl font-display font-black text-brand-accent">{formatPrice(item.price)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -280,7 +296,20 @@ export default function Home({ config, onReady }: HomeProps) {
           </div>
         )}
         
-        {displayProducts.length > 0 ? (
+        {isInitialLoad ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="editorial-card animate-pulse bg-white">
+                <div className="aspect-square bg-gray-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-2 bg-gray-100 rounded w-1/2" />
+                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+                  <div className="h-6 bg-gray-100 rounded w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {displayProducts.map((p) => (
               <ProductCard key={p.id} product={p} onClick={setSelectedProduct} />
