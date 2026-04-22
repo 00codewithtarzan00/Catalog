@@ -26,7 +26,6 @@ export interface Notice {
 export interface StoreConfig {
   logoUrl?: string;
   heroImageUrl?: string;
-  heroSlogan?: string;
   aboutText?: string;
   categoryImages?: Record<string, string>; // Maps category name to image URL
   allCategoriesImageUrl?: string;

@@ -62,8 +62,8 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Dynamic logo with fallback
-  const LOGO_URL = config?.logoUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=100&h=100&fit=crop";
+  // Dynamic logo - removed fallback
+  const LOGO_URL = config?.logoUrl;
 
   const handleSearchSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -80,8 +80,8 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
 
   return (
     <>
-      <nav className="h-16 border-b border-brand-border flex items-center justify-between px-4 md:px-10 bg-white sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-2 lg:gap-4">
+      <nav className="h-16 md:h-20 border-b border-brand-border flex items-center justify-between px-4 md:px-10 bg-white sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center gap-2 lg:gap-4 h-full">
           {isSubPage && (
             <button 
               onClick={() => navigate(-1)}
@@ -99,21 +99,25 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
             {isMenuOpen ? <X className="w-6 h-6 text-brand-accent" /> : <Menu className="w-6 h-6 text-brand-accent" />}
           </button>
 
-          <Link to="/" className="flex items-center gap-2 group mr-2">
-            <div className="w-12 h-12 rounded-full border-2 border-brand-accent bg-white flex-shrink-0 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
-               <img 
-                 src={LOGO_URL} 
-                 alt="Logo" 
-                 className="max-w-full max-h-full object-contain"
-                 onError={(e) => {
-                   // Fallback if the link isn't a direct image
-                   (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/store/100/100';
-                 }}
-               />
+          <Link to="/" className="flex items-center gap-2 group mr-2 h-full">
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-brand-accent bg-white flex-shrink-0 p-1 shadow-md flex items-center justify-center overflow-hidden transition-all duration-500`}>
+               {LOGO_URL ? (
+                 <img 
+                   src={LOGO_URL} 
+                   alt="Logo" 
+                   className="max-w-full max-h-full object-contain"
+                 />
+               ) : (
+                 <div className="w-full h-full bg-brand-accent/5 flex items-center justify-center">
+                    <span className="text-lg md:text-xl font-black text-brand-accent italic tracking-tighter">RK</span>
+                 </div>
+               )}
             </div>
-            <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap">
-              Raj Kirana Store
-            </span>
+            <div className="flex flex-col justify-center min-w-0 max-w-[150px] md:max-w-[300px]">
+              <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap leading-none">
+                Raj Kirana Store
+              </span>
+            </div>
           </Link>
         </div>
 

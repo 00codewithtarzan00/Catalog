@@ -63,11 +63,12 @@ service cloud.firestore {
     }
 
     function hasValidConfigFields(data) {
-      return data.keys().hasOnly(['logoUrl', 'heroImageUrl', 'heroSlogan', 'aboutText']) &&
+      return data.keys().hasOnly(['logoUrl', 'heroImageUrl', 'aboutText', 'categoryImages', 'allCategoriesImageUrl']) &&
              (!('logoUrl' in data) || data.logoUrl is string) &&
              (!('heroImageUrl' in data) || data.heroImageUrl is string) &&
-             (!('heroSlogan' in data) || data.heroSlogan is string) &&
-             (!('aboutText' in data) || data.aboutText is string);
+             (!('aboutText' in data) || data.aboutText is string) &&
+             (!('categoryImages' in data) || data.categoryImages is map) &&
+             (!('allCategoriesImageUrl' in data) || data.allCategoriesImageUrl is string);
     }
 
     // Products

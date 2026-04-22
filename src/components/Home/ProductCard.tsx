@@ -16,14 +16,20 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       onClick={() => onClick(product)}
       className={`editorial-card group cursor-pointer ${!product.available ? 'opacity-75' : ''}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-50 border-b border-brand-border">
-        <img
-          src={product.imageUrl || `https://picsum.photos/seed/${product.id}/400/400`}
-          alt={product.name}
-          referrerPolicy="no-referrer"
-          loading="lazy"
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.available ? 'grayscale brightness-90' : ''}`}
-        />
+      <div className="relative aspect-square overflow-hidden bg-gray-50 border-b border-brand-border flex items-center justify-center">
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            referrerPolicy="no-referrer"
+            loading="lazy"
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.available ? 'grayscale brightness-90' : ''}`}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+            <span className="text-3xl font-black text-brand-accent/10 italic">RK</span>
+          </div>
+        )}
 
         {!product.available && (
           <div className="absolute top-2 right-2 bg-gray-600 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm">

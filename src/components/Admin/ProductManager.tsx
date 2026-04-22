@@ -113,8 +113,12 @@ export default function ProductManager() {
         {products.map((p) => (
           <div key={p.id} className="bg-white editorial-card p-4 flex flex-col gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden border border-brand-border">
-                <img src={p.imageUrl || 'https://picsum.photos/seed/gro/100/100'} alt={p.name} className="w-full h-full object-cover" />
+              <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden border border-brand-border flex items-center justify-center">
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">N/A</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 mb-1 flex-wrap">

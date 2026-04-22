@@ -9,7 +9,6 @@ export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
     logoUrl: '',
     heroImageUrl: '',
-    heroSlogan: '',
     aboutText: '',
     categoryImages: {},
     allCategoriesImageUrl: ''
@@ -148,67 +147,6 @@ export default function SettingsManager() {
               </div>
             </div>
             
-            <div className="space-y-3">
-              <label className="text-xs font-bold flex items-center gap-2">
-                <ImageIcon className="w-3.5 h-3.5" /> Hero Background
-              </label>
-              <div className="flex gap-4 items-start">
-                {/* Preview Box */}
-                <div className="w-12 h-12 bg-gray-50 border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
-                  {config.heroImageUrl ? (
-                    <img src={config.heroImageUrl} alt="Bg Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <ImageIcon className="w-4 h-4 text-gray-300" />
-                  )}
-                </div>
-
-                <div className="flex-1 space-y-1">
-                  <div className="flex gap-2">
-                    <input
-                      className="editorial-input h-10"
-                      placeholder="Paste Link or Upload"
-                      value={config.heroImageUrl || ''}
-                      onChange={e => setConfig({ ...config, heroImageUrl: e.target.value })}
-                    />
-                    <button 
-                      type="button" 
-                      disabled={uploading === 'heroImageUrl'}
-                      onClick={() => heroFileRef.current?.click()}
-                      className="editorial-btn-secondary h-10 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-                    >
-                      <Upload className={`w-4 h-4 ${uploading === 'heroImageUrl' ? 'animate-bounce' : ''}`} /> 
-                      <span className="text-[10px] hidden md:inline">
-                        {uploading === 'heroImageUrl' ? 'Reading...' : 'Upload'}
-                      </span>
-                    </button>
-                  </div>
-                  <input 
-                    type="file" 
-                    ref={heroFileRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={(e) => handleFileUpload(e, 'heroImageUrl')} 
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-bold flex items-center gap-2">
-                <Type className="w-3.5 h-3.5" /> Slogan
-              </label>
-              <input
-                className="editorial-input"
-                placeholder="Quality You Trust, Freshness You Deserve"
-                value={config.heroSlogan || ''}
-                onChange={e => setConfig({ ...config, heroSlogan: e.target.value })}
-              />
-              <p className="text-[10px] text-brand-muted leading-tight">
-                This slogan appears in the header section of your homepage.
-              </p>
-            </div>
-
-            {/* Category Images Section */}
             <div className="pt-4 border-t border-brand-border">
               <button 
                 type="button"

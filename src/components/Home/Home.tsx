@@ -4,7 +4,6 @@ import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product, Notice, StoreConfig } from '../../types';
 import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
-import Hero from './Hero';
 import NoticeArea from './NoticeArea';
 import ProductCard from './ProductCard';
 import { formatPrice } from '../../lib/utils';
@@ -28,7 +27,6 @@ export default function Home({ config, onReady }: HomeProps) {
   const [dataStatus, setDataStatus] = useState({ 
     products: false, 
     notices: false, 
-    hero: false, 
     logo: false, 
     configReceived: false,
     prodImages: false 
@@ -39,57 +37,14 @@ export default function Home({ config, onReady }: HomeProps) {
 
   const isSearchEmpty = searchQuery.trim() === '';
 
-  // CORE ASSET PRELOADING (Hero & Logo)
+  // REMOVED PRELOADING LOGIC AS PER USER REQUEST TO SPEED UP
   useEffect(() => {
-    if (Object.keys(config).length > 0) {
-      setDataStatus(prev => ({ ...prev, configReceived: true }));
-      
-      const preloadImage = (url: string, key: 'hero' | 'logo') => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => setDataStatus(prev => ({ ...prev, [key]: true }));
-        img.onerror = () => setDataStatus(prev => ({ ...prev, [key]: true }));
-      };
-
-      if (config.heroImageUrl) preloadImage(config.heroImageUrl, 'hero');
-      else setDataStatus(prev => ({ ...prev, hero: true }));
-
-      if (config.logoUrl) preloadImage(config.logoUrl, 'logo');
-      else setDataStatus(prev => ({ ...prev, logo: true }));
+    if (Object.keys(config).length > 0 && products.length >= 0) {
+      // Just signal ready once we have data, don't wait for images
+      onReady();
+      setIsInitialLoad(false);
     }
-  }, [config]);
-
-  // PRODUCT IMAGE PRELOADING
-  useEffect(() => {
-    if (products.length > 0) {
-      const topProducts = products.slice(0, 4); // Preload first 4 product images
-      let loadedCount = 0;
-      
-      if (topProducts.filter(p => p.imageUrl).length === 0) {
-        setDataStatus(prev => ({ ...prev, prodImages: true }));
-        return;
-      }
-
-      topProducts.forEach(p => {
-        if (p.imageUrl) {
-          const img = new Image();
-          img.src = p.imageUrl;
-          img.onload = () => {
-            loadedCount++;
-            if (loadedCount >= topProducts.filter(p => p.imageUrl).length) {
-              setDataStatus(prev => ({ ...prev, prodImages: true }));
-            }
-          };
-          img.onerror = () => {
-            loadedCount++;
-            if (loadedCount >= topProducts.filter(p => p.imageUrl).length) {
-              setDataStatus(prev => ({ ...prev, prodImages: true }));
-            }
-          };
-        }
-      });
-    }
-  }, [products]);
+  }, [config, products, onReady]);
 
   useEffect(() => {
     // Sync Products with dynamic limit for pagination
@@ -138,8 +93,8 @@ export default function Home({ config, onReady }: HomeProps) {
 
   // SIGNAL READY WHEN ALL KEY ASSETS ARE FULLY LOADED
   useEffect(() => {
-    const { configReceived, products, notices, hero, logo, prodImages } = dataStatus;
-    if (configReceived && products && notices && hero && logo && prodImages) {
+    const { configReceived, products, notices, logo, prodImages } = dataStatus;
+    if (configReceived && products && notices && logo && prodImages) {
       setIsInitialLoad(false);
       const timer = setTimeout(onReady, 600);
       return () => clearTimeout(timer);
@@ -205,7 +160,6 @@ export default function Home({ config, onReady }: HomeProps) {
   return (
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
       <Navbar onSearch={setSearchQuery} config={config} />
-      <Hero config={config} />
       <NoticeArea currentNotice={latestNotice} />
 
       {/* Categories Filter Section - Amazon/Flipkart style */}
@@ -219,12 +173,18 @@ export default function Home({ config, onReady }: HomeProps) {
             >
               <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${!selectedCategory ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
                 <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                  <img 
-                    src={config.allCategoriesImageUrl || "https://picsum.photos/seed/shop/120/120"} 
-                    alt="All"
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                  {config.allCategoriesImageUrl ? (
+                    <img 
+                      src={config.allCategoriesImageUrl} 
+                      alt="All"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-brand-accent/10 flex items-center justify-center">
+                      <Star className="w-6 h-6 text-brand-accent/40" />
+                    </div>
+                  )}
                 </div>
               </div>
               <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors ${!selectedCategory ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
@@ -233,19 +193,8 @@ export default function Home({ config, onReady }: HomeProps) {
             </button>
 
             {CATEGORIES.map((cat) => {
-              const categorySeeds: Record<string, string> = {
-                "Daily Essentials (Rozana ka Saaman)": "milk",
-                "Groceries & Staples (Rashan)": "grains",
-                "Personal Care (Khud ki Dekhbhal)": "skincare",
-                "Home Essentials (Ghar Ki Jarurat)": "cleaning",
-                "Beverages (Peene wali cheezein)": "drinks",
-                "Cosmetics (Shringar ka Saaman)": "makeup",
-                "Stationery (Lekhan Samagri)": "pencils"
-              };
-
-              const seed = categorySeeds[cat] || "grocery";
               const isSelected = selectedCategory === cat;
-              const catImageUrl = config.categoryImages?.[cat] || `https://picsum.photos/seed/${seed}/120/120`;
+              const catImageUrl = config.categoryImages?.[cat];
 
               return (
                 <button
@@ -255,12 +204,18 @@ export default function Home({ config, onReady }: HomeProps) {
                 >
                   <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${isSelected ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
                     <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                      <img 
-                        src={catImageUrl} 
-                        alt={cat}
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
+                      {catImageUrl ? (
+                        <img 
+                          src={catImageUrl} 
+                          alt={cat}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-brand-accent/5 flex items-center justify-center">
+                          <span className="text-xl font-bold text-brand-accent/20">{cat.charAt(0)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors line-clamp-2 leading-tight px-1 ${isSelected ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
@@ -295,12 +250,17 @@ export default function Home({ config, onReady }: HomeProps) {
                     {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% 
                   </div>
                   
-                  <div className="w-full md:w-40 aspect-square overflow-hidden bg-gray-50 flex-shrink-0">
-                    <img 
-                      src={item.imageUrl || `https://picsum.photos/seed/${item.id}/400/400`} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    />
+                  <div className="w-full md:w-40 aspect-square overflow-hidden bg-gray-50 flex-shrink-0 flex items-center justify-center">
+                    {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <Star className="w-12 h-12 text-brand-accent/10" />
+                    )}
                   </div>
                   
                   <div className="flex-1 flex flex-col justify-center py-2">
@@ -382,13 +342,20 @@ export default function Home({ config, onReady }: HomeProps) {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-full md:w-1/2 aspect-square bg-gray-50 flex-shrink-0">
-              <img 
-                src={selectedProduct.imageUrl || `https://picsum.photos/seed/${selectedProduct.id}/600/600`} 
-                alt={selectedProduct.name} 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
+            <div className="w-full md:w-1/2 aspect-square bg-gray-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border">
+              {selectedProduct.imageUrl ? (
+                <img 
+                  src={selectedProduct.imageUrl} 
+                  alt={selectedProduct.name} 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 opacity-10">
+                  <Star className="w-20 h-20 text-brand-accent" />
+                  <span className="font-display font-black text-4xl italic tracking-tighter">RK</span>
+                </div>
+              )}
             </div>
 
             <div className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto">
