@@ -309,20 +309,20 @@ export default function Home({ config }: HomeProps) {
         )}
         
         {isInitialLoad ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="editorial-card animate-pulse bg-white">
-                <div className="aspect-square bg-gray-100" />
-                <div className="p-4 space-y-3">
+                <div className="aspect-[4/3] md:aspect-square bg-gray-100" />
+                <div className="p-2 md:p-4 space-y-2 md:space-y-3">
                   <div className="h-2 bg-gray-100 rounded w-1/2" />
                   <div className="h-4 bg-gray-100 rounded w-3/4" />
-                  <div className="h-6 bg-gray-100 rounded w-1/3" />
+                  <div className="h-4 md:h-6 bg-gray-100 rounded w-1/3" />
                 </div>
               </div>
             ))}
           </div>
         ) : displayProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {displayProducts.map((p) => (
               <ProductCard key={p.id} product={p} onClick={setSelectedProduct} />
             ))}
