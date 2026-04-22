@@ -35,11 +35,11 @@ export default function Home({ config }: HomeProps) {
 
   useEffect(() => {
     // Dynamic SEO update
-    document.title = "Raj Kirana Store | Online Grocery & Daily Essentials Shop";
+    document.title = "Raj Kirana Store - Online Grocery Shop";
     
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'Raj Kirana Store par payein har tarah ka rashan, snacks aur ghar ka saaman behtarin daam par. Quality products aur daily essentials ke liye hamari site visit karein.');
+      metaDescription.setAttribute('content', 'Daily essentials aur kirana items ke liye sabse sasti aur achhi jagah.');
     }
 
     const metaKeywords = document.querySelector('meta[name="keywords"]');
