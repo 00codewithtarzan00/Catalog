@@ -286,6 +286,16 @@ export default function Home({ config }: HomeProps) {
       )}
 
       <main className="flex-1 px-4 md:px-10 py-10 max-w-7xl mx-auto w-full">
+        {/* Always visible static content for SEO and users */}
+        <div className="mb-10 text-center lg:text-left">
+          <h1 className="font-display text-4xl md:text-5xl font-black text-brand-text mb-4 tracking-tight">
+            Welcome to <span className="text-brand-accent">Raj Kirana Store</span>
+          </h1>
+          <p className="text-brand-muted text-lg font-sans max-w-2xl">
+            Best Online Grocery and Daily Essentials in your city. Fresh quality and best prices delivered.
+          </p>
+        </div>
+
         {selectedCategory && (
           <div className="mb-8 border-l-4 border-brand-accent pl-4 py-2 bg-brand-accent/5">
              <h2 className="text-xl font-display font-bold text-brand-accent">{selectedCategory}</h2>
