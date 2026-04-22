@@ -11,10 +11,9 @@ import { Star, X } from 'lucide-react';
 
 interface HomeProps {
   config: StoreConfig;
-  onReady: () => void;
 }
 
-export default function Home({ config, onReady }: HomeProps) {
+export default function Home({ config }: HomeProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -76,10 +75,8 @@ export default function Home({ config, onReady }: HomeProps) {
   useEffect(() => {
     if (dataStatus.products) {
       setIsInitialLoad(false);
-      const timer = setTimeout(onReady, 600);
-      return () => clearTimeout(timer);
     }
-  }, [dataStatus.products, onReady]);
+  }, [dataStatus.products]);
 
   // Search & Category Logic
   const filteredProducts = products.filter((p) => {

@@ -7,15 +7,12 @@ import NoticeHistory from './components/Home/NoticeHistory';
 import Contact from './components/Home/Contact';
 import About from './components/Home/About';
 import ErrorBoundary from './components/ErrorBoundary';
-import LoadingScreen from './components/LoadingScreen';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import { StoreConfig } from './types';
-import { AnimatePresence, motion } from 'motion/react';
 
 export default function App() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [config, setConfig] = useState<StoreConfig>({});
 
   useEffect(() => {
@@ -44,41 +41,12 @@ export default function App() {
     setIsAdmin(false);
   };
 
-  // Coordinated Loading: Data + Fallback timer
-  const isCurrentlyLoading = !isDataLoaded;
-
-  useEffect(() => {
-    // Safety fallback: If data isn't loaded within 10 seconds (including images), show the site anyway
-    const fallbackTimer = setTimeout(() => {
-      if (!isDataLoaded) {
-        console.warn("Loading timeout: Showing site anyway");
-        setIsDataLoaded(true);
-      }
-    }, 10000);
-
-    return () => clearTimeout(fallbackTimer);
-  }, [isDataLoaded]);
-
   return (
     <div className="relative min-h-screen">
-      <AnimatePresence>
-        {isCurrentlyLoading && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-[200]"
-          >
-            <LoadingScreen />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <Router>
         <ErrorBoundary>
           <Routes>
-            <Route path="/" element={<Home config={config} onReady={() => setIsDataLoaded(true)} />} />
+            <Route path="/" element={<Home config={config} />} />
             <Route path="/about" element={<About config={config} />} />
             <Route path="/contact" element={<Contact config={config} />} />
             <Route path="/notices" element={<NoticeHistory config={config} />} />
