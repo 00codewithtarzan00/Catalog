@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product } from '../../types';
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
 import { formatPrice } from '../../lib/utils';
 import { CATEGORIES } from '../../constants';
 
 export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,26 +93,57 @@ export default function ProductManager() {
 
   return (
     <div className="animate-fade-in">
-      <header className="flex justify-between items-end mb-8 border-b border-brand-border pb-4">
-        <div>
-          <h1 className="text-3xl font-display font-bold text-brand-accent">Live Inventory</h1>
-          <p className="text-sm text-brand-muted mt-1">Manage rates and availability of stock items.</p>
+      <header className="mb-8 border-b border-brand-border pb-6">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-brand-accent">Live Inventory</h1>
+            <p className="text-sm text-brand-muted mt-1">Manage rates and availability of stock items.</p>
+          </div>
+          <button
+            onClick={() => {
+              setCurrentProduct({ available: true, imageUrl: '' });
+              setIsEditing(true);
+            }}
+            className="editorial-btn-primary flex items-center gap-2 whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" /> Add Product
+          </button>
         </div>
-        <button
-          onClick={() => {
-            setCurrentProduct({ available: true, imageUrl: '' });
-            setIsEditing(true);
-          }}
-          className="editorial-btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> Add Product
-        </button>
+
+        <div className="w-full">
+          <form 
+            onSubmit={(e) => e.preventDefault()}
+            className="flex items-center bg-gray-50 rounded-md overflow-hidden border border-brand-border focus-within:border-brand-accent transition-all"
+          >
+            <div className="flex items-center px-4 py-2.5 flex-1">
+              <Search className="w-4 h-4 text-brand-muted mr-3" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="bg-transparent border-none outline-none w-full text-sm font-sans"
+              />
+            </div>
+            <button 
+              type="submit"
+              className="bg-brand-accent text-white px-6 py-2.5 text-xs font-bold hover:bg-opacity-90 transition-colors uppercase tracking-wider"
+            >
+              Search
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Grid of Products for Admin */}
       <div className="grid grid-cols-1 gap-4">
-        {products.map((p) => (
-          <div key={p.id} className="bg-white editorial-card p-4 flex flex-col gap-4">
+        {products
+          .filter(p => 
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            p.category.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map((p) => (
+            <div key={p.id} className="bg-white editorial-card p-4 flex flex-col gap-4">
             <div className="flex items-start gap-4">
               <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden border border-brand-border flex items-center justify-center">
                 {p.imageUrl ? (
