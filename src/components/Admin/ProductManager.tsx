@@ -233,11 +233,12 @@ export default function ProductManager() {
 
       {/* Modal Tooltip Placeholder/Form */}
       {isEditing && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={handleSave}
-            className="bg-white w-full max-w-lg editorial-card p-8 animate-slide-up"
-          >
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="min-h-full w-full flex items-center justify-center py-8">
+            <form
+              onSubmit={handleSave}
+              className="bg-white w-full max-w-lg editorial-card p-6 md:p-8 animate-slide-up relative"
+            >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-display font-bold">{currentProduct?.id ? 'Edit Rate' : 'Add New Product'}</h2>
               <button type="button" onClick={() => setIsEditing(false)} className="text-brand-muted hover:text-black">
@@ -245,8 +246,8 @@ export default function ProductManager() {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Category</label>
                   <select
@@ -275,7 +276,7 @@ export default function ProductManager() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold text-brand-muted">Selling Price (Rate)</label>
                   <input
@@ -300,7 +301,7 @@ export default function ProductManager() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 py-2 border-y border-brand-border">
+              <div className="flex flex-wrap items-center gap-4 py-2 border-y border-brand-border">
                 <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"
@@ -309,9 +310,9 @@ export default function ProductManager() {
                     checked={currentProduct?.isSpecial || false}
                     onChange={e => setCurrentProduct({ ...currentProduct, isSpecial: e.target.checked })}
                   />
-                  <label htmlFor="isSpecial" className="text-xs font-bold uppercase cursor-pointer">Special Discount Item (Max 2)</label>
+                  <label htmlFor="isSpecial" className="text-[10px] md:text-xs font-bold uppercase cursor-pointer">Special Item (Max 2)</label>
                 </div>
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"
                     id="available"
@@ -319,14 +320,14 @@ export default function ProductManager() {
                     checked={currentProduct?.available ?? true}
                     onChange={e => setCurrentProduct({ ...currentProduct, available: e.target.checked })}
                   />
-                  <label htmlFor="available" className="text-xs font-bold uppercase cursor-pointer">In Stock</label>
+                  <label htmlFor="available" className="text-[10px] md:text-xs font-bold uppercase cursor-pointer">In Stock</label>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] uppercase font-bold text-brand-muted">Description</label>
                 <textarea
-                  className="editorial-input min-h-[80px]"
+                  className="editorial-input min-h-[60px] md:min-h-[80px]"
                   placeholder="Details like weight, age, or brand..."
                   value={currentProduct?.description || ''}
                   onChange={e => setCurrentProduct({ ...currentProduct, description: e.target.value })}
@@ -337,7 +338,7 @@ export default function ProductManager() {
                 <label className="text-[10px] uppercase font-bold text-brand-muted">Image URL or Upload</label>
                 <div className="flex gap-2">
                   <input
-                    className="editorial-input h-10"
+                    className="editorial-input h-10 flex-1"
                     placeholder="https://..."
                     value={currentProduct?.imageUrl || ''}
                     onChange={e => setCurrentProduct({ ...currentProduct, imageUrl: e.target.value })}
@@ -345,7 +346,7 @@ export default function ProductManager() {
                   <button 
                     type="button" 
                     onClick={() => fileInputRef.current?.click()}
-                    className="editorial-btn-secondary h-10 px-3 flex items-center justify-center"
+                    className="editorial-btn-secondary h-10 px-3 flex items-center justify-center flex-shrink-0"
                     title="Upload File"
                   >
                     <Upload className="w-4 h-4" />
@@ -364,22 +365,23 @@ export default function ProductManager() {
               </div>
             </div>
 
-            <div className="mt-8 flex gap-3">
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
-                className="flex-1 editorial-btn-primary"
+                className="w-full sm:flex-1 editorial-btn-primary py-3"
               >
                 Save Changes
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex-1 editorial-btn-secondary"
+                className="w-full sm:flex-1 editorial-btn-secondary py-3"
               >
                 Cancel
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
     </div>

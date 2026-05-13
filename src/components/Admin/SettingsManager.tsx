@@ -312,7 +312,7 @@ export default function SettingsManager() {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-6 flex items-center justify-end border-t">
+        <div className="bg-gray-50 p-6 flex items-center justify-end border-t sticky bottom-0 z-10">
           <button
             type="submit"
             disabled={loading || uploading !== null}
