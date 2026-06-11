@@ -370,12 +370,12 @@ export default function Home({ config }: HomeProps) {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-full md:w-1/2 aspect-square bg-gray-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border">
+            <div className="w-full md:w-[280px] lg:w-[320px] h-[220px] md:h-[280px] lg:h-[320px] bg-gray-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border overflow-hidden">
               {selectedProduct.imageUrl ? (
                 <img 
                   src={selectedProduct.imageUrl} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-contain p-6"
+                  className="w-full h-full object-contain p-4 transition-all duration-300 hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
               ) : (
