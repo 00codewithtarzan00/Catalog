@@ -5,7 +5,7 @@ import { Product, StoreConfig } from '../../types';
 import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
 import ProductCard from './ProductCard';
-import { formatPrice } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { Star, X } from 'lucide-react';
 
@@ -278,11 +278,18 @@ export default function Home({ config }: HomeProps) {
                     </div>
                     
                     <div className="flex-1 flex flex-col justify-center py-2">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-[10px] uppercase font-bold text-brand-accent">{item.category}</span>
                         <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1 rounded animate-pulse">Save ₹{item.mrp - item.price}</span>
                       </div>
-                      <h3 className="font-display text-2xl font-bold mb-2 leading-tight break-words">{item.name}</h3>
+                      <h3 className="font-display text-2xl font-bold mb-1 leading-tight break-words">{item.name}</h3>
+                      {item.showQuantity && item.quantityValue && (
+                        <div className="mb-2">
+                          <span className="text-xs font-medium text-[#666] whitespace-nowrap inline-flex">
+                            {item.quantityValue} {formatQuantityUnit(item.quantityUnit || 'g')}
+                          </span>
+                        </div>
+                      )}
                       <p className="text-sm text-brand-muted mb-6 font-sans leading-relaxed italic break-words line-clamp-2">"{item.description}"</p>
                       
                       <div className="flex items-end gap-3 mt-auto">
@@ -387,12 +394,21 @@ export default function Home({ config }: HomeProps) {
             </div>
 
             <div className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto">
-              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-accent mb-2">
-                {selectedProduct.category}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-accent">
+                  {selectedProduct.category}
+                </span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 leading-tight">
+              <h2 className="text-2xl md:text-3xl font-display font-bold mb-2 leading-tight">
                 {selectedProduct.name}
               </h2>
+              {selectedProduct.showQuantity && selectedProduct.quantityValue && (
+                <div className="mb-4">
+                  <span className="text-sm font-medium text-[#666] inline-flex">
+                    Net Qty: {selectedProduct.quantityValue} {formatQuantityUnit(selectedProduct.quantityUnit || 'g')}
+                  </span>
+                </div>
+              )}
               
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-3xl font-display font-bold text-brand-accent">

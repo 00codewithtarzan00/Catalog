@@ -7,7 +7,7 @@ interface LoginProps {
   onLoginSuccess: () => void;
 }
 
-const ADMIN_PASSWORD = 'adm_raj%7979';
+const ADMIN_PASSWORD = 'adm_r@j123';
 
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [password, setPassword] = useState('');

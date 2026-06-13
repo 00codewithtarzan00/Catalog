@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, d
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product } from '../../types';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
-import { formatPrice } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { CATEGORIES } from '../../constants';
 
 export default function ProductManager() {
@@ -56,6 +56,9 @@ export default function ProductManager() {
         price: Number(currentProduct.price),
         mrp: Number(currentProduct.mrp || currentProduct.price),
         isSpecial: currentProduct.isSpecial || false,
+        showQuantity: currentProduct.showQuantity || false,
+        quantityValue: currentProduct.showQuantity ? Number(currentProduct.quantityValue || 1) : null as any,
+        quantityUnit: currentProduct.showQuantity ? (currentProduct.quantityUnit || 'g') : null as any,
         createdAt: currentProduct.id ? currentProduct.createdAt : Date.now(),
         available: currentProduct.available ?? true,
       };
@@ -168,6 +171,11 @@ export default function ProductManager() {
                   <span className="font-bold text-brand-accent text-sm">{formatPrice(p.price)}</span>
                   {p.mrp && p.mrp > p.price && (
                     <span className="text-[10px] text-gray-400 line-through">{formatPrice(p.mrp)}</span>
+                  )}
+                  {p.showQuantity && p.quantityValue && (
+                    <span className="text-xs font-medium text-[#666] ml-2 font-sans">
+                      ({p.quantityValue} {formatQuantityUnit(p.quantityUnit || 'g')})
+                    </span>
                   )}
                 </div>
                 <p className="text-gray-500 text-xs break-words whitespace-normal leading-relaxed">
@@ -322,7 +330,52 @@ export default function ProductManager() {
                   />
                   <label htmlFor="available" className="text-[10px] md:text-xs font-bold uppercase cursor-pointer">In Stock</label>
                 </div>
+                <div className="flex items-center gap-2 border-l border-brand-border pl-4">
+                   <input 
+                    type="checkbox"
+                    id="showQuantity"
+                    className="w-4 h-4 accent-brand-accent"
+                    checked={currentProduct?.showQuantity || false}
+                    onChange={e => setCurrentProduct({ ...currentProduct, showQuantity: e.target.checked })}
+                  />
+                  <label htmlFor="showQuantity" className="text-[10px] md:text-xs font-bold uppercase cursor-pointer text-brand-accent">Show Quantity</label>
+                </div>
               </div>
+
+              {currentProduct?.showQuantity && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-3 bg-gray-50 border border-brand-border rounded-md animate-fade-in">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-brand-muted">Quantity (Amount/Value)</label>
+                    <input
+                      required
+                      type="number"
+                      step="any"
+                      min="0.001"
+                      className="editorial-input"
+                      placeholder="e.g. 500, 1, 1.5"
+                      value={currentProduct?.quantityValue !== undefined && currentProduct?.quantityValue !== null ? currentProduct.quantityValue : ''}
+                      onChange={e => setCurrentProduct({ ...currentProduct, quantityValue: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-brand-muted">Unit</label>
+                    <select
+                      required
+                      className="editorial-input h-10 appearance-none bg-white font-sans"
+                      value={currentProduct?.quantityUnit || 'g'}
+                      onChange={e => setCurrentProduct({ ...currentProduct, quantityUnit: e.target.value })}
+                    >
+                      <option value="g">Gram (g)</option>
+                      <option value="kg">Kilogram (kg)</option>
+                      <option value="piece">Piece (pc)</option>
+                      <option value="dozen">Dozen</option>
+                      <option value="ml">Milliliter (ml)</option>
+                      <option value="l">Liter (L)</option>
+                      <option value="packet">Packet (pkt)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-[10px] uppercase font-bold text-brand-muted">Description</label>

@@ -13,6 +13,9 @@ export interface Product {
   imageUrl: string;
   available: boolean;
   isSpecial?: boolean; // Featured special discount items
+  showQuantity?: boolean;
+  quantityValue?: number;
+  quantityUnit?: string;
   createdAt: number;
 }
 

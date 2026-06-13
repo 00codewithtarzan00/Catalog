@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product } from '../../types';
-import { formatPrice } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
 
 interface ProductCardProps {
@@ -45,12 +45,21 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       </div>
 
       <div className="p-3 md:p-4 flex flex-col min-h-0 md:min-h-32">
-        <div className="text-[9px] md:text-[10px] uppercase tracking-wider text-brand-muted font-semibold mb-0.5 md:mb-1">
-          {product.category}
+        <div className="flex items-center justify-between mb-0.5 md:mb-1 gap-2">
+          <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-brand-muted font-semibold truncate">
+            {product.category}
+          </span>
         </div>
-        <h3 className="font-display font-medium text-base md:text-lg leading-tight line-clamp-2 mb-1 md:mb-2 text-brand-text">
+        <h3 className="font-display font-medium text-base md:text-lg leading-tight line-clamp-2 text-brand-text mb-1">
           {product.name}
         </h3>
+        {product.showQuantity && product.quantityValue && (
+          <div className="mb-2">
+            <span className="text-[11px] md:text-xs font-medium text-[#666] whitespace-nowrap">
+              {product.quantityValue} {formatQuantityUnit(product.quantityUnit || 'g')}
+            </span>
+          </div>
+        )}
         
         <div className="mt-auto flex flex-col">
           <div className="flex items-center gap-1.5 md:gap-2">
