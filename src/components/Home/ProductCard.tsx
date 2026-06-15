@@ -54,18 +54,18 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
         )}
       </div>
 
-      <div className="p-3 md:p-4 flex flex-col min-h-0 md:min-h-32">
-        <div className="flex items-center justify-between mb-0.5 md:mb-1 gap-1">
-          <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-brand-muted font-semibold truncate leading-none">
+      <div className="p-3 md:p-4 flex flex-col min-h-0 md:min-h-36">
+        <div className="flex items-center justify-between mb-1 gap-1">
+          <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-wider text-brand-muted font-semibold truncate leading-none">
             {product.category}
           </span>
          </div>
-        <h3 className="font-display font-medium text-xs sm:text-sm md:text-base leading-snug line-clamp-2 text-brand-text mb-1 h-10 md:h-12 overflow-hidden">
+        <h3 className="font-display font-medium text-sm sm:text-base md:text-[17px] leading-snug line-clamp-2 text-brand-text mb-1 h-11 sm:h-12 md:h-14 overflow-hidden">
           {product.name}
         </h3>
         {product.showQuantity && product.quantityValue && (
-          <div className="mb-1 md:mb-2">
-            <span className="text-[10px] md:text-xs font-medium text-[#666] whitespace-nowrap leading-none block">
+          <div className="mb-1.5 md:mb-2">
+            <span className="text-xs md:text-sm font-medium text-[#666] whitespace-nowrap leading-none block">
               {product.quantityValue} {formatQuantityUnit(product.quantityUnit || 'g')}
             </span>
           </div>
@@ -73,11 +73,11 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
         
         <div className="mt-auto flex flex-col justify-end pt-1">
           <div className="flex items-center gap-1.5 md:gap-2">
-            <span className="font-display font-bold text-xs sm:text-sm md:text-lg text-brand-accent leading-none">
+            <span className="font-display font-bold text-sm sm:text-base md:text-xl text-brand-accent leading-none">
               {formatPrice(product.price)}
             </span>
             {product.mrp && product.mrp > product.price && (
-              <span className="text-[10px] md:text-xs text-brand-muted line-through font-medium leading-none">
+              <span className="text-xs md:text-sm text-brand-muted line-through font-medium leading-none">
                 {formatPrice(product.mrp)}
               </span>
             )}
