@@ -22,6 +22,32 @@ const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-
   return <ShoppingBag className={sizeClass} />;
 };
 
+const getTextSizeClasses = (size: string | undefined, isTextBanner: boolean = false) => {
+  if (isTextBanner) {
+    switch (size) {
+      case 'xs': return 'text-[9px] sm:text-[10px] md:text-xs';
+      case 'sm': return 'text-[10px] sm:text-xs md:text-sm';
+      case 'md': return 'text-xs sm:text-sm md:text-base';
+      case 'lg': return 'text-sm sm:text-base md:text-lg';
+      case 'xl': return 'text-base sm:text-lg md:text-xl';
+      case '2xl': return 'text-lg sm:text-xl md:text-2xl';
+      case '3xl': return 'text-xl sm:text-2xl md:text-3xl';
+      default: return 'text-xs sm:text-sm';
+    }
+  } else {
+    switch (size) {
+      case 'xs': return 'text-[8px] sm:text-[10px] md:text-xs';
+      case 'sm': return 'text-[10px] sm:text-xs md:text-sm';
+      case 'md': return 'text-xs sm:text-sm md:text-base';
+      case 'lg': return 'text-sm sm:text-base md:text-lg';
+      case 'xl': return 'text-base sm:text-lg md:text-xl';
+      case '2xl': return 'text-lg sm:text-xl md:text-2xl';
+      case '3xl': return 'text-xl sm:text-2xl md:text-3xl';
+      default: return 'text-[10px] sm:text-xs md:text-sm';
+    }
+  }
+};
+
 const renderBanner = (banner: any, isBanner2: boolean = false) => {
   if (!banner || banner.type === 'none') return null;
 
@@ -48,13 +74,13 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
       >
         <div className="py-2.5 w-full overflow-hidden relative">
           {!isMarqueeEnabled ? (
-            <div className="w-full text-center text-xs sm:text-sm font-bold uppercase tracking-widest px-4 py-1">
+            <div className={`w-full text-center font-bold uppercase tracking-widest px-4 py-1 ${getTextSizeClasses(banner.textSize, true)}`}>
               <span>✨ {textValue} ✨</span>
             </div>
           ) : (
             <div 
               key={`marquee-text-${banner.marqueeSpeed}-${isLTR}`}
-              className={`${animationClass} hover:[animation-play-state:paused] flex whitespace-nowrap gap-16 text-xs sm:text-sm font-bold uppercase tracking-widest shrink-0`}
+              className={`${animationClass} hover:[animation-play-state:paused] flex whitespace-nowrap gap-16 font-bold uppercase tracking-widest shrink-0 ${getTextSizeClasses(banner.textSize, true)}`}
               style={{ 
                 animation: `${isLTR ? "marquee-ltr" : "marquee-rtl"} ${banner.marqueeSpeed || 25}s linear infinite`,
                 animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
@@ -152,7 +178,7 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
           {banner.text && (
             <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 select-none z-30 pointer-events-none bg-gradient-to-t from-black/40 to-transparent">
               <h3 
-                className="text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-widest leading-snug text-center font-display drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-[95%]"
+                className={`font-bold uppercase tracking-widest leading-snug text-center font-display drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-[95%] ${getTextSizeClasses(banner.textSize, false)}`}
                 style={{ color: banner.textColor || '#ffffff' }}
               >
                 {banner.text}

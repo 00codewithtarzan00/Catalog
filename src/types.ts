@@ -33,6 +33,7 @@ export interface BannerSetting {
   text?: string;
   bgColor?: string;
   textColor?: string;
+  textSize?: string;
   enableMarquee?: boolean;
   marqueeDirection?: 'ltr' | 'rtl';
   marqueeSpeed?: number;

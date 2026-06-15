@@ -556,10 +556,10 @@ export default function SettingsManager() {
                     );
                   })()}
 
-                {config.banner1?.type !== "none" && (
+                 {config.banner1?.type !== "none" && (
                   <div className="space-y-3 pt-1 animate-fade-in">
-                    <div className="grid grid-cols-3 gap-3 items-end">
-                      <div className="col-span-2 space-y-1">
+                    <div className="space-y-3">
+                      <div className="space-y-1">
                         <label className="text-[9px] uppercase font-bold text-gray-400">
                           Banner Display Text (Optional/Marquee)
                         </label>
@@ -578,25 +578,54 @@ export default function SettingsManager() {
                           }
                         />
                       </div>
+                      
                       {config.banner1?.text && (
-                        <div className="space-y-1 animate-fade-in">
-                          <label className="text-[9px] uppercase font-bold text-gray-400">
-                            Text Color
-                          </label>
-                          <input
-                            type="color"
-                            className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
-                            value={config.banner1?.textColor || "#ffffff"}
-                            onChange={(e) =>
-                              setConfig({
-                                ...config,
-                                banner1: {
-                                  ...(config.banner1 || { type: "none" }),
-                                  textColor: e.target.value,
-                                },
-                              })
-                            }
-                          />
+                        <div className="grid grid-cols-2 gap-3 pt-1 animate-fade-in">
+                          <div className="space-y-1">
+                            <label className="text-[9px] uppercase font-bold text-gray-400">
+                              Text Color
+                            </label>
+                            <input
+                              type="color"
+                              className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
+                              value={config.banner1?.textColor || "#ffffff"}
+                              onChange={(e) =>
+                                setConfig({
+                                  ...config,
+                                  banner1: {
+                                    ...(config.banner1 || { type: "none" }),
+                                    textColor: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] uppercase font-bold text-gray-400">
+                              Text Size
+                            </label>
+                            <select
+                              className="editorial-input h-9 text-xs bg-white"
+                              value={config.banner1?.textSize || "sm"}
+                              onChange={(e) =>
+                                setConfig({
+                                  ...config,
+                                  banner1: {
+                                    ...(config.banner1 || { type: "none" }),
+                                    textSize: e.target.value,
+                                  },
+                                })
+                              }
+                            >
+                              <option value="xs">Extra Small (Sabse Chhota)</option>
+                              <option value="sm">Small (Chhota - Default)</option>
+                              <option value="md">Medium (Medium)</option>
+                              <option value="lg">Large (Bada)</option>
+                              <option value="xl">Extra Large (Sabse Bada)</option>
+                              <option value="2xl">2X Large</option>
+                              <option value="3xl">3X Large</option>
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1004,10 +1033,10 @@ export default function SettingsManager() {
                     );
                   })()}
 
-                {config.banner2?.type !== "none" && (
+                 {config.banner2?.type !== "none" && (
                   <div className="space-y-3 pt-1 animate-fade-in">
-                    <div className="grid grid-cols-3 gap-3 items-end">
-                      <div className="col-span-2 space-y-1">
+                    <div className="space-y-3">
+                      <div className="space-y-1">
                         <label className="text-[9px] uppercase font-bold text-gray-400">
                           Banner Display Text (Optional/Marquee)
                         </label>
@@ -1026,25 +1055,54 @@ export default function SettingsManager() {
                           }
                         />
                       </div>
+                      
                       {config.banner2?.text && (
-                        <div className="space-y-1 animate-fade-in">
-                          <label className="text-[9px] uppercase font-bold text-gray-450">
-                            Text Color
-                          </label>
-                          <input
-                            type="color"
-                            className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
-                            value={config.banner2?.textColor || "#ffffff"}
-                            onChange={(e) =>
-                              setConfig({
-                                ...config,
-                                banner2: {
-                                  ...(config.banner2 || { type: "none" }),
-                                  textColor: e.target.value,
-                                },
-                              })
-                            }
-                          />
+                        <div className="grid grid-cols-2 gap-3 pt-1 animate-fade-in">
+                          <div className="space-y-1">
+                            <label className="text-[9px] uppercase font-bold text-gray-450">
+                              Text Color
+                            </label>
+                            <input
+                              type="color"
+                              className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
+                              value={config.banner2?.textColor || "#ffffff"}
+                              onChange={(e) =>
+                                setConfig({
+                                  ...config,
+                                  banner2: {
+                                    ...(config.banner2 || { type: "none" }),
+                                    textColor: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] uppercase font-bold text-gray-400">
+                              Text Size
+                            </label>
+                            <select
+                              className="editorial-input h-9 text-xs bg-white"
+                              value={config.banner2?.textSize || "sm"}
+                              onChange={(e) =>
+                                setConfig({
+                                  ...config,
+                                  banner2: {
+                                    ...(config.banner2 || { type: "none" }),
+                                    textSize: e.target.value,
+                                  },
+                                })
+                              }
+                            >
+                              <option value="xs">Extra Small (Sabse Chhota)</option>
+                              <option value="sm">Small (Chhota - Default)</option>
+                              <option value="md">Medium (Medium)</option>
+                              <option value="lg">Large (Bada)</option>
+                              <option value="xl">Extra Large (Sabse Bada)</option>
+                              <option value="2xl">2X Large</option>
+                              <option value="3xl">3X Large</option>
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>
