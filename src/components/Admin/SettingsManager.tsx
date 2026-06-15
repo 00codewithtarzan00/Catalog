@@ -4,6 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { StoreConfig } from '../../types';
 import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import { CATEGORIES } from '../../constants';
+import { compressImage } from '../../lib/utils';
 
 export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
@@ -42,16 +43,9 @@ export default function SettingsManager() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: string, isCategory: boolean = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1000000) { 
-        alert("File size is too large! Please use a file smaller than 1MB for fast loading.");
-        return;
-      }
-      
       setUploading(field);
-      const reader = new FileReader();
-      
-      reader.onloadend = () => {
-        const result = reader.result as string;
+
+      const processResult = (result: string) => {
         if (isCategory) {
           setConfig(prev => ({
             ...prev,
@@ -67,12 +61,33 @@ export default function SettingsManager() {
         e.target.value = '';
       };
 
-      reader.onerror = () => {
-        alert("Failed to read file.");
-        setUploading(null);
-      };
-
-      reader.readAsDataURL(file);
+      if (file.size > 1024 * 1024) { // More than 1MB
+        compressImage(file)
+          .then(compressedUrl => {
+            processResult(compressedUrl);
+          })
+          .catch(() => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              processResult(reader.result as string);
+            };
+            reader.onerror = () => {
+              alert("Failed to read file.");
+              setUploading(null);
+            };
+            reader.readAsDataURL(file);
+          });
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          processResult(reader.result as string);
+        };
+        reader.onerror = () => {
+          alert("Failed to read file.");
+          setUploading(null);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

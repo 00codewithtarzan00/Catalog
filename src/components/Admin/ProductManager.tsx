@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, d
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product } from '../../types';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
-import { formatPrice, formatQuantityUnit } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, compressImage } from '../../lib/utils';
 import { CATEGORIES } from '../../constants';
 
 export default function ProductManager() {
@@ -25,15 +25,25 @@ export default function ProductManager() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 800000) {
-        alert("Image too large. Please use a file under 800KB.");
-        return;
+      if (file.size > 1024 * 1024) { // More than 1MB
+        compressImage(file)
+          .then(compressedUrl => {
+            setCurrentProduct(prev => ({ ...prev, imageUrl: compressedUrl }));
+          })
+          .catch(() => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setCurrentProduct(prev => ({ ...prev, imageUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+          });
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setCurrentProduct(prev => ({ ...prev, imageUrl: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCurrentProduct(prev => ({ ...prev, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
     }
   };
 
