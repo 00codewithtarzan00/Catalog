@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { StoreConfig } from '../../types';
-import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Image as ImageIcon, Type, Upload, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import { CATEGORIES } from '../../constants';
 
 export default function SettingsManager() {
@@ -11,7 +11,9 @@ export default function SettingsManager() {
     heroImageUrl: '',
     aboutText: '',
     categoryImages: {},
-    allCategoriesImageUrl: ''
+    allCategoriesImageUrl: '',
+    bannerType: 'none',
+    bannerUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -19,6 +21,7 @@ export default function SettingsManager() {
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
   const allCatFileRef = useRef<HTMLInputElement>(null);
   const categoryFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -40,7 +43,7 @@ export default function SettingsManager() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1000000) { 
-        alert("Image quality is too high! Please use an image smaller than 1MB for fast loading.");
+        alert("File size is too large! Please use a file smaller than 1MB for fast loading.");
         return;
       }
       
@@ -65,7 +68,7 @@ export default function SettingsManager() {
       };
 
       reader.onerror = () => {
-        alert("Failed to read image file.");
+        alert("Failed to read file.");
         setUploading(null);
       };
 
@@ -191,6 +194,84 @@ export default function SettingsManager() {
                     This image will appear blurred behind the category filters.
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-brand-border">
+              <label className="text-xs font-bold flex items-center gap-2 text-brand-accent">
+                <Video className="w-4 h-4" /> Home Page Banner (Image/Video)
+              </label>
+              <div className="space-y-3">
+                <div className="flex gap-4 items-center">
+                  <span className="text-[11px] font-bold text-gray-500 uppercase">Banner Mode:</span>
+                  <div className="flex gap-2">
+                    {(['none', 'image', 'video'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setConfig({ ...config, bannerType: mode })}
+                        className={`px-3 py-1.5 rounded text-xs font-bold uppercase transition-all ${
+                          (config.bannerType || 'none') === mode
+                            ? 'bg-brand-accent text-white shadow-sm'
+                            : 'bg-gray-100 hover:bg-gray-200 text-brand-muted'
+                        }`}
+                      >
+                        {mode === 'none' ? 'No Banner' : mode === 'image' ? 'Image' : 'Video'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {(config.bannerType && config.bannerType !== 'none') && (
+                  <div className="flex gap-4 items-start pt-2">
+                    {/* Preview Box */}
+                    <div className="w-16 h-12 bg-gray-50 border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      {config.bannerUrl ? (
+                        config.bannerType === 'image' ? (
+                          <img src={config.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <video src={config.bannerUrl} muted loop autoPlay className="w-full h-full object-cover" />
+                        )
+                      ) : (
+                        <div className="text-[10px] text-gray-300 font-bold uppercase">No Media</div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 space-y-1">
+                      <div className="flex gap-2">
+                        <input
+                          className="editorial-input h-10"
+                          placeholder={config.bannerType === 'image' ? "Banner Image URL or Base64" : "Direct Video Link (e.g. mp4, webm) or Base64"}
+                          value={config.bannerUrl || ''}
+                          onChange={e => setConfig({ ...config, bannerUrl: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          disabled={uploading === 'bannerUrl'}
+                          onClick={() => bannerFileRef.current?.click()}
+                          className="editorial-btn-secondary h-10 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                        >
+                          <Upload className={`w-4 h-4 ${uploading === 'bannerUrl' ? 'animate-bounce' : ''}`} />
+                          <span className="text-[10px] hidden md:inline">
+                            {uploading === 'bannerUrl' ? 'Reading...' : 'Upload'}
+                          </span>
+                        </button>
+                      </div>
+                      <input
+                        type="file"
+                        ref={bannerFileRef}
+                        className="hidden"
+                        accept={config.bannerType === 'image' ? "image/*" : "video/*"}
+                        onChange={(e) => handleFileUpload(e, 'bannerUrl')}
+                      />
+                      <p className="text-[10px] text-brand-muted italic leading-tight">
+                        {config.bannerType === 'image' 
+                          ? "Upload an image of aspect ratio (approx. 3:1 or wide) for best look." 
+                          : "Upload a highly compressed video (<1MB) or paste an online mp4/webm direct URL."}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             

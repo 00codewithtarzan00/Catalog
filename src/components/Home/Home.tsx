@@ -7,7 +7,20 @@ import Navbar from './Navbar';
 import ProductCard from './ProductCard';
 import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
-import { Star, X } from 'lucide-react';
+import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil } from 'lucide-react';
+
+const getCategoryIcon = (category: string | null) => {
+  if (!category) return <Grid className="w-4 h-4" />;
+  const catLower = category.toLowerCase();
+  if (catLower.includes("daily") || catLower.includes("rozana")) return <ShoppingBag className="w-4 h-4" />;
+  if (catLower.includes("grocer") || catLower.includes("rashan")) return <ShoppingBasket className="w-4 h-4" />;
+  if (catLower.includes("personal") || catLower.includes("dekhbhal")) return <Heart className="w-4 h-4" />;
+  if (catLower.includes("home") || catLower.includes("ghar")) return <HomeIcon className="w-4 h-4" />;
+  if (catLower.includes("beverage") || catLower.includes("peene")) return <CupSoda className="w-4 h-4" />;
+  if (catLower.includes("cosmetic") || catLower.includes("shringar")) return <Sparkles className="w-4 h-4" />;
+  if (catLower.includes("stationery") || catLower.includes("lekhan")) return <Pencil className="w-4 h-4" />;
+  return <ShoppingBag className="w-4 h-4" />;
+};
 
 interface HomeProps {
   config: StoreConfig;
@@ -20,6 +33,7 @@ export default function Home({ config }: HomeProps) {
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const showIcons = true;
   
   const [dataStatus, setDataStatus] = useState({ 
     products: false, 
@@ -149,74 +163,75 @@ export default function Home({ config }: HomeProps) {
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
       <Navbar onSearch={setSearchQuery} config={config} />
 
-      {/* Categories Filter Section - Amazon/Flipkart style with background */}
-      <section className="relative border-b border-brand-border py-1 md:py-2">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img 
-            src={config.heroImageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000"} 
-            alt="Background" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px]" />
-        </div>
+      {/* Banner Section */}
+      {config.bannerType && config.bannerType !== 'none' && config.bannerUrl && (
+        <section className="w-full overflow-hidden bg-gray-100 border-b border-brand-border h-[150px] sm:h-[220px] md:h-[300px] lg:h-[350px] relative z-20">
+          <div className="w-full h-full relative">
+            {config.bannerType === 'image' ? (
+              <img 
+                src={config.bannerUrl} 
+                alt="Store Banner" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <video 
+                src={config.bannerUrl} 
+                className="w-full h-full object-cover"
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                controls={false}
+              />
+            )}
+          </div>
+        </section>
+      )}
 
-        <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10 pt-2 pb-0">
-          <div className="flex items-center gap-6 overflow-x-auto pb-2 pt-1 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
+      {/* Categories Filter Section - Compact, Slim & Solid Style */}
+      <section className="sticky top-14 md:top-16 z-30 border-b border-brand-border py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
             {/* All Categories */}
             <button
               onClick={() => setSelectedCategory(null)}
-              className="flex flex-col items-center gap-2 group min-w-[70px] md:min-w-[90px] flex-shrink-0"
+              className={`flex items-center gap-1.5 px-3 py-1 md:py-1.5 rounded-full border transition-all duration-300 flex-shrink-0 ${
+                !selectedCategory
+                  ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
+                  : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
+              }`}
             >
-              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${!selectedCategory ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
-                <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                  {config.allCategoriesImageUrl ? (
-                    <img 
-                      src={config.allCategoriesImageUrl} 
-                      alt="All"
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-brand-accent/10 flex items-center justify-center">
-                      <Star className="w-6 h-6 text-brand-accent/40" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors ${!selectedCategory ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
-                All items
+              {showIcons && (
+                <span className={!selectedCategory ? 'text-white' : 'text-brand-accent/70'}>
+                  {getCategoryIcon(null)}
+                </span>
+              )}
+              <span className="text-[10px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap">
+                ALL ITEMS
               </span>
             </button>
 
             {CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat;
-              const catImageUrl = config.categoryImages?.[cat];
 
               return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className="flex flex-col items-center gap-2 group min-w-[70px] md:min-w-[90px] flex-shrink-0"
+                  className={`flex items-center gap-1.5 px-3 py-1 md:py-1.5 rounded-full border transition-all duration-300 flex-shrink-0 ${
+                    isSelected
+                      ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
+                      : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
+                  }`}
                 >
-                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center p-0.5 border-2 transition-all duration-300 ${isSelected ? 'border-brand-accent scale-110 shadow-lg' : 'border-transparent'}`}>
-                    <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                      {catImageUrl ? (
-                        <img 
-                          src={catImageUrl} 
-                          alt={cat}
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-brand-accent/5 flex items-center justify-center">
-                          <span className="text-xl font-bold text-brand-accent/20">{cat.charAt(0)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <span className={`text-[10px] md:text-xs font-bold text-center tracking-tight transition-colors line-clamp-2 leading-tight px-1 ${isSelected ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-accent'}`}>
-                    {cat.split(' (')[0]}
+                  {showIcons && (
+                    <span className={isSelected ? 'text-white' : 'text-brand-accent/70'}>
+                      {getCategoryIcon(cat)}
+                    </span>
+                  )}
+                  <span className="text-[10px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap">
+                    {cat.split('(')[0].trim().toUpperCase()}
                   </span>
                 </button>
               );

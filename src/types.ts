@@ -32,4 +32,6 @@ export interface StoreConfig {
   aboutText?: string;
   categoryImages?: Record<string, string>; // Maps category name to image URL
   allCategoriesImageUrl?: string;
+  bannerType?: 'none' | 'image' | 'video';
+  bannerUrl?: string;
 }

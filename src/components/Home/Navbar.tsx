@@ -84,7 +84,7 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
 
   return (
     <>
-      <nav className="h-16 md:h-20 border-b border-brand-border flex items-center justify-between px-4 md:px-10 bg-white sticky top-0 z-50 shadow-sm">
+      <nav className="h-14 md:h-16 border-b border-brand-border flex items-center justify-between px-4 md:px-8 bg-white sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2 lg:gap-4 h-full">
           {isSubPage && (
             <button 
@@ -104,7 +104,7 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
           </button>
 
           <Link to="/" className="flex items-center gap-2 group mr-2 h-full">
-            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-brand-accent bg-white flex-shrink-0 p-1 shadow-md flex items-center justify-center overflow-hidden transition-all duration-500`}>
+            <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-brand-accent bg-white flex-shrink-0 p-1 shadow-md flex items-center justify-center overflow-hidden transition-all duration-500`}>
                {LOGO_URL ? (
                  <img 
                    src={LOGO_URL} 
@@ -113,12 +113,12 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
                  />
                ) : (
                  <div className="w-full h-full bg-brand-accent/5 flex items-center justify-center">
-                    <span className="text-lg md:text-xl font-black text-brand-accent italic tracking-tighter">RK</span>
+                    <span className="text-base md:text-lg font-black text-brand-accent italic tracking-tighter">RK</span>
                  </div>
                )}
             </div>
             <div className="flex flex-col justify-center min-w-0 max-w-[150px] md:max-w-[300px]">
-              <span className="logo font-display font-bold text-lg md:text-2xl text-brand-accent tracking-tighter whitespace-nowrap leading-none">
+              <span className="logo font-display font-bold text-base md:text-xl text-brand-accent tracking-tighter whitespace-nowrap leading-none">
                 Raj Kirana Store
               </span>
             </div>
@@ -173,7 +173,7 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
 
       {/* Mobile/Tablet Search Bar - Visible below navbar on smaller screens */}
       {!isSubPage && (
-        <div className="lg:hidden bg-white border-b border-brand-border p-3 px-4 md:px-10 sticky top-16 z-40 animate-fade-in">
+        <div className="lg:hidden bg-white border-b border-brand-border p-3 px-4 md:px-10 relative z-10 animate-fade-in">
           <SearchBar value={searchValue} onChange={handleSearchChange} onSubmit={handleSearchSubmit} />
         </div>
       )}
