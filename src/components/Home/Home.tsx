@@ -9,17 +9,17 @@ import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil } from 'lucide-react';
 
-const getCategoryIcon = (category: string | null) => {
-  if (!category) return <Grid className="w-4 h-4" />;
+const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-4") => {
+  if (!category) return <Grid className={sizeClass} />;
   const catLower = category.toLowerCase();
-  if (catLower.includes("daily") || catLower.includes("rozana")) return <ShoppingBag className="w-4 h-4" />;
-  if (catLower.includes("grocer") || catLower.includes("rashan")) return <ShoppingBasket className="w-4 h-4" />;
-  if (catLower.includes("personal") || catLower.includes("dekhbhal")) return <Heart className="w-4 h-4" />;
-  if (catLower.includes("home") || catLower.includes("ghar")) return <HomeIcon className="w-4 h-4" />;
-  if (catLower.includes("beverage") || catLower.includes("peene")) return <CupSoda className="w-4 h-4" />;
-  if (catLower.includes("cosmetic") || catLower.includes("shringar")) return <Sparkles className="w-4 h-4" />;
-  if (catLower.includes("stationery") || catLower.includes("lekhan")) return <Pencil className="w-4 h-4" />;
-  return <ShoppingBag className="w-4 h-4" />;
+  if (catLower.includes("daily") || catLower.includes("rozana")) return <ShoppingBag className={sizeClass} />;
+  if (catLower.includes("grocer") || catLower.includes("rashan")) return <ShoppingBasket className={sizeClass} />;
+  if (catLower.includes("personal") || catLower.includes("dekhbhal")) return <Heart className={sizeClass} />;
+  if (catLower.includes("home") || catLower.includes("ghar")) return <HomeIcon className={sizeClass} />;
+  if (catLower.includes("beverage") || catLower.includes("peene")) return <CupSoda className={sizeClass} />;
+  if (catLower.includes("cosmetic") || catLower.includes("shringar")) return <Sparkles className={sizeClass} />;
+  if (catLower.includes("stationery") || catLower.includes("lekhan")) return <Pencil className={sizeClass} />;
+  return <ShoppingBag className={sizeClass} />;
 };
 
 interface HomeProps {
@@ -190,13 +190,13 @@ export default function Home({ config }: HomeProps) {
       )}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
-      <section className="sticky top-16 z-30 border-b border-brand-border py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
+      <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
+          <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
             {/* All Categories */}
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`flex items-center gap-1.5 px-3 py-1 md:py-1.5 rounded-full border transition-all duration-300 flex-shrink-0 ${
+              className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                 !selectedCategory
                   ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
                   : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
@@ -207,7 +207,7 @@ export default function Home({ config }: HomeProps) {
                   {getCategoryIcon(null)}
                 </span>
               )}
-              <span className="text-[10px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap">
+              <span className="text-[8px] xs:text-[9px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
                 ALL ITEMS
               </span>
             </button>
@@ -219,7 +219,7 @@ export default function Home({ config }: HomeProps) {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`flex items-center gap-1.5 px-3 py-1 md:py-1.5 rounded-full border transition-all duration-300 flex-shrink-0 ${
+                  className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                     isSelected
                       ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
                       : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
@@ -230,7 +230,7 @@ export default function Home({ config }: HomeProps) {
                       {getCategoryIcon(cat)}
                     </span>
                   )}
-                  <span className="text-[10px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap">
+                  <span className="text-[8px] xs:text-[9px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
                     {cat.split('(')[0].trim().toUpperCase()}
                   </span>
                 </button>
