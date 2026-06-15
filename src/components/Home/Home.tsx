@@ -190,7 +190,7 @@ export default function Home({ config }: HomeProps) {
       )}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
-      <section className="sticky top-14 md:top-16 z-30 border-b border-brand-border py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
+      <section className="sticky top-16 z-30 border-b border-brand-border py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
             {/* All Categories */}

@@ -84,7 +84,7 @@ export default function Navbar({ onSearch, config }: NavbarProps) {
 
   return (
     <>
-      <nav className="h-14 md:h-16 border-b border-brand-border flex items-center justify-between px-4 md:px-8 bg-white sticky top-0 z-50 shadow-sm">
+      <nav className="h-16 border-b border-brand-border flex items-center justify-between px-4 md:px-8 bg-white sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2 lg:gap-4 h-full">
           {isSubPage && (
             <button 
