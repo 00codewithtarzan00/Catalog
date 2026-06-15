@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rajkiranastore.com/sitemap.xml
+Sitemap: https://rajkiranastore.vercel.app/sitemap.xml
