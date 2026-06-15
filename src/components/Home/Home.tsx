@@ -54,7 +54,10 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
           ) : (
             <div 
               className={`${animationClass} hover:[animation-play-state:paused] flex whitespace-nowrap gap-16 text-xs sm:text-sm font-bold uppercase tracking-widest shrink-0`}
-              style={{ animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined }}
+              style={{ 
+                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined,
+                '--marquee-duration': banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : '25s'
+              } as React.CSSProperties}
             >
               {/* Set 1 */}
               <div className="flex gap-16 shrink-0">
@@ -90,47 +93,50 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
     }
 
     return (
-      <section className="w-full overflow-hidden bg-gray-50 border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
-        <div className="w-full relative overflow-hidden flex items-center">
+      <section className="w-full overflow-hidden bg-black border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
+        <div className="w-full relative overflow-hidden flex items-center bg-black">
           {!isMarqueeEnabled ? (
-            /* Static images/videos side-by-side with 2px gap/line */
-            <div className="w-full flex flex-wrap sm:flex-nowrap gap-[2px] bg-gray-300">
+            /* Static images/videos side-by-side with 3px black gap/line */
+            <div className="w-full flex flex-wrap sm:flex-nowrap gap-[3px] bg-black">
               {urls.map((url, idx) => (
-                <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0">
+                <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0 bg-black">
                   {banner.type === 'image' ? (
-                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
                   ) : (
-                    <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                    <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            /* Seamless continuous marquee of images/videos with 2px gap/line */
+            /* Seamless continuous marquee of images/videos with 3px black gap/line */
             <div 
-              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[2px] bg-gray-300`}
-              style={{ animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined }}
+              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[3px] bg-black`}
+              style={{ 
+                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined,
+                '--marquee-duration': banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : '25s'
+              } as React.CSSProperties}
             >
               {/* Set 1 */}
-              <div className="flex gap-[2px] shrink-0 h-full">
+              <div className="flex gap-[3px] shrink-0 h-full bg-black">
                 {marqueeUrls.map((url, idx) => (
-                  <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0">
+                  <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
                     ) : (
-                      <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                      <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
                     )}
                   </div>
                 ))}
               </div>
               {/* Set 2 */}
-              <div className="flex gap-[2px] shrink-0 h-full" aria-hidden="true">
+              <div className="flex gap-[3px] shrink-0 h-full bg-black" aria-hidden="true">
                 {marqueeUrls.map((url, idx) => (
-                  <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0">
+                  <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
                     ) : (
-                      <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                      <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
                     )}
                   </div>
                 ))}
