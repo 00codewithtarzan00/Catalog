@@ -9,6 +9,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onClick }: ProductCardProps) {
+  const discountPercent = product.mrp && product.mrp > product.price
+    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+    : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -17,6 +21,12 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       className={`editorial-card group cursor-pointer ${!product.available ? 'opacity-75' : ''}`}
     >
       <div className="relative aspect-square overflow-hidden bg-gray-50 border-b border-brand-border flex items-center justify-center">
+        {discountPercent > 0 && (
+          <div className="absolute top-2 left-2 bg-red-600 text-white text-[9px] md:text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm z-10 shadow-sm">
+            {discountPercent}% OFF
+          </div>
+        )}
+
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
