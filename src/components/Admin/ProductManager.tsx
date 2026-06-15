@@ -241,43 +241,45 @@ export default function ProductManager() {
 
       {/* Modal Tooltip Placeholder/Form */}
       {isEditing && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] overflow-y-auto flex justify-center items-start p-4 md:p-6">
-          <form
-            onSubmit={handleSave}
-            className="bg-white w-full max-w-md editorial-card p-5 md:p-6 my-4 md:my-8 animate-slide-up relative"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-display font-bold">{currentProduct?.id ? 'Edit Rate' : 'Add New Product'}</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="min-h-full w-full flex items-center justify-center py-8">
+            <form
+              onSubmit={handleSave}
+              className="bg-white w-full max-w-lg editorial-card p-6 md:p-8 animate-slide-up relative"
+            >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-display font-bold">{currentProduct?.id ? 'Edit Rate' : 'Add New Product'}</h2>
               <button type="button" onClick={() => setIsEditing(false)} className="text-brand-muted hover:text-black">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-2.5 md:space-y-3">
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-brand-muted">Product Name</label>
-                <input
-                  required
-                  className="editorial-input"
-                  placeholder="e.g. Master Gold Tea"
-                  value={currentProduct?.name || ''}
-                  onChange={e => setCurrentProduct({ ...currentProduct, name: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-brand-muted">Category</label>
-                <select
-                  required
-                  className="editorial-input h-10 appearance-none bg-white"
-                  value={currentProduct?.category || ''}
-                  onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
-                >
-                  <option value="" disabled>Select Category</option>
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+            <div className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-brand-muted">Product Name</label>
+                  <input
+                    required
+                    className="editorial-input"
+                    placeholder="e.g. Master Gold Tea"
+                    value={currentProduct?.name || ''}
+                    onChange={e => setCurrentProduct({ ...currentProduct, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold text-brand-muted">Category</label>
+                  <select
+                    required
+                    className="editorial-input h-10 appearance-none bg-white"
+                    value={currentProduct?.category || ''}
+                    onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
+                  >
+                    <option value="" disabled>Select Category</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
@@ -307,7 +309,7 @@ export default function ProductManager() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 py-1.5 border-y border-brand-border">
+              <div className="flex flex-wrap items-center gap-4 py-2 border-y border-brand-border">
                 <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"
@@ -341,7 +343,7 @@ export default function ProductManager() {
               </div>
 
               {currentProduct?.showQuantity && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 p-2 bg-gray-50 border border-brand-border rounded-md animate-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-3 bg-gray-50 border border-brand-border rounded-md animate-fade-in">
                   <div className="space-y-1">
                     <label className="text-[10px] uppercase font-bold text-brand-muted">Quantity (Amount/Value)</label>
                     <input
@@ -378,7 +380,7 @@ export default function ProductManager() {
               <div className="space-y-1">
                 <label className="text-[10px] uppercase font-bold text-brand-muted">Description</label>
                 <textarea
-                  className="editorial-input min-h-[45px] md:min-h-[55px]"
+                  className="editorial-input min-h-[60px] md:min-h-[80px]"
                   placeholder="Details like weight, age, or brand..."
                   value={currentProduct?.description || ''}
                   onChange={e => setCurrentProduct({ ...currentProduct, description: e.target.value })}
@@ -416,22 +418,23 @@ export default function ProductManager() {
               </div>
             </div>
 
-            <div className="mt-5 md:mt-6 flex flex-col sm:flex-row gap-2.5">
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
-                className="w-full sm:flex-1 editorial-btn-primary py-2"
+                className="w-full sm:flex-1 editorial-btn-primary py-3"
               >
                 Save Changes
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="w-full sm:flex-1 editorial-btn-secondary py-2"
+                className="w-full sm:flex-1 editorial-btn-secondary py-3"
               >
                 Cancel
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
     </div>
