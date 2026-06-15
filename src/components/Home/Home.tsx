@@ -22,6 +22,138 @@ const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-
   return <ShoppingBag className={sizeClass} />;
 };
 
+const renderBanner = (banner: any, isBanner2: boolean = false) => {
+  if (!banner || banner.type === 'none') return null;
+
+  const urls = banner.urls && banner.urls.length > 0 
+    ? banner.urls.filter(Boolean) 
+    : (banner.url ? [banner.url] : []);
+
+  if (urls.length === 0 && banner.type !== 'text') return null;
+
+  const isMarqueeEnabled = isBanner2 
+    ? (banner.enableMarquee === true) 
+    : (banner.enableMarquee !== false);
+
+  const isLTR = banner.marqueeDirection === 'ltr';
+  const animationClass = isLTR ? 'animate-marquee-ltr' : 'animate-marquee-rtl';
+
+  if (banner.type === 'text') {
+    const textValue = banner.text || 'Special Offer';
+    const repeats = Array(8).fill(textValue);
+    return (
+      <section 
+        className="w-full overflow-hidden select-none relative border-y border-brand-border z-20 flex items-center shadow-sm" 
+        style={{ backgroundColor: banner.bgColor || '#0047AB', color: banner.textColor || '#ffffff' }}
+      >
+        <div className="py-2.5 w-full overflow-hidden relative">
+          {!isMarqueeEnabled ? (
+            <div className="w-full text-center text-xs sm:text-sm font-bold uppercase tracking-widest px-4 py-1">
+              <span>✨ {textValue} ✨</span>
+            </div>
+          ) : (
+            <div 
+              className={`${animationClass} hover:[animation-play-state:paused] flex whitespace-nowrap gap-16 text-xs sm:text-sm font-bold uppercase tracking-widest shrink-0`}
+              style={{ animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined }}
+            >
+              {/* Set 1 */}
+              <div className="flex gap-16 shrink-0">
+                {repeats.map((t, idx) => (
+                  <span key={`set1-${idx}`} className="flex items-center gap-2">
+                    <span>✨</span>
+                    <span>{t}</span>
+                  </span>
+                ))}
+              </div>
+              {/* Set 2 */}
+              <div className="flex gap-16 shrink-0" aria-hidden="true">
+                {repeats.map((t, idx) => (
+                  <span key={`set2-${idx}`} className="flex items-center gap-2">
+                    <span>✨</span>
+                    <span>{t}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  if (banner.type === 'image' || banner.type === 'video') {
+    let marqueeUrls = [...urls];
+    if (marqueeUrls.length > 0 && isMarqueeEnabled) {
+      while (marqueeUrls.length < 15) {
+        marqueeUrls = [...marqueeUrls, ...urls];
+      }
+    }
+
+    return (
+      <section className="w-full overflow-hidden bg-gray-50 border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
+        <div className="w-full relative overflow-hidden flex items-center">
+          {!isMarqueeEnabled ? (
+            /* Static images/videos side-by-side with 2px gap/line */
+            <div className="w-full flex flex-wrap sm:flex-nowrap gap-[2px] bg-gray-300">
+              {urls.map((url, idx) => (
+                <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0">
+                  {banner.type === 'image' ? (
+                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Seamless continuous marquee of images/videos with 2px gap/line */
+            <div 
+              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[2px] bg-gray-300`}
+              style={{ animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined }}
+            >
+              {/* Set 1 */}
+              <div className="flex gap-[2px] shrink-0 h-full">
+                {marqueeUrls.map((url, idx) => (
+                  <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0">
+                    {banner.type === 'image' ? (
+                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Set 2 */}
+              <div className="flex gap-[2px] shrink-0 h-full" aria-hidden="true">
+                {marqueeUrls.map((url, idx) => (
+                  <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0">
+                    {banner.type === 'image' ? (
+                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <video src={url} className="w-full h-full object-cover" autoPlay loop playsInline muted />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Content text overlay */}
+          {banner.text && (
+            <div className="absolute inset-0 bg-black/25 flex items-center justify-center p-4 select-none z-30 pointer-events-none">
+              <div className="text-center font-display text-white drop-shadow-md px-5 py-2.5 sm:px-8 sm:py-4 bg-black/45 backdrop-blur-md rounded-lg border border-white/10 max-w-[85%]">
+                <h3 className="text-xs sm:text-sm md:text-lg font-bold uppercase tracking-widest leading-snug">{banner.text}</h3>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  return null;
+};
+
 interface HomeProps {
   config: StoreConfig;
 }
@@ -163,31 +295,8 @@ export default function Home({ config }: HomeProps) {
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
       <Navbar onSearch={setSearchQuery} config={config} />
 
-      {/* Banner Section */}
-      {config.bannerType && config.bannerType !== 'none' && config.bannerUrl && (
-        <section className="w-full overflow-hidden bg-gray-100 border-b border-brand-border h-[150px] sm:h-[220px] md:h-[300px] lg:h-[350px] relative z-20">
-          <div className="w-full h-full relative">
-            {config.bannerType === 'image' ? (
-              <img 
-                src={config.bannerUrl} 
-                alt="Store Banner" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <video 
-                src={config.bannerUrl} 
-                className="w-full h-full object-cover"
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-                controls={false}
-              />
-            )}
-          </div>
-        </section>
-      )}
+      {/* Banner Section (Top Banner) */}
+      {renderBanner(config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null))}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
       <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
@@ -239,6 +348,9 @@ export default function Home({ config }: HomeProps) {
           </div>
         </div>
       </section>
+
+      {/* Banner Section 2 (Below Category Bar) */}
+      {renderBanner(config.banner2, true)}
 
       {/* Main Product Feed */}
 

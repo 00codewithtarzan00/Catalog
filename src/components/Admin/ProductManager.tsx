@@ -51,21 +51,12 @@ export default function ProductManager() {
     e.preventDefault();
     if (!currentProduct?.name || !currentProduct?.price || !currentProduct?.category) return;
 
-    // Validation for special items: max 2
-    if (currentProduct.isSpecial) {
-      const existingSpecials = products.filter(p => p.isSpecial && p.id !== currentProduct.id);
-      if (existingSpecials.length >= 2) {
-        alert("Maximum 2 items can be marked as Special at a time. Please unmark another item first.");
-        return;
-      }
-    }
-
     try {
       const data = {
         ...currentProduct,
         price: Number(currentProduct.price),
         mrp: Number(currentProduct.mrp || currentProduct.price),
-        isSpecial: currentProduct.isSpecial || false,
+        isSpecial: false,
         showQuantity: currentProduct.showQuantity || false,
         quantityValue: currentProduct.showQuantity ? Number(currentProduct.quantityValue || 1) : null as any,
         quantityUnit: currentProduct.showQuantity ? (currentProduct.quantityUnit || 'g') : null as any,
@@ -170,11 +161,6 @@ export default function ProductManager() {
                   <span className="text-[10px] uppercase font-bold text-brand-muted bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
                     {p.category}
                   </span>
-                  {p.isSpecial && (
-                    <span className="text-[10px] uppercase font-bold text-white bg-brand-accent px-1.5 py-0.5 rounded whitespace-nowrap">
-                      Special Offer
-                    </span>
-                  )}
                   <h3 className="font-bold text-sm tracking-tight break-words">{p.name}</h3>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
@@ -320,16 +306,6 @@ export default function ProductManager() {
               </div>
 
               <div className="flex flex-wrap items-center gap-4 py-2 border-y border-brand-border">
-                <div className="flex items-center gap-2">
-                   <input 
-                    type="checkbox"
-                    id="isSpecial"
-                    className="w-4 h-4 accent-brand-accent"
-                    checked={currentProduct?.isSpecial || false}
-                    onChange={e => setCurrentProduct({ ...currentProduct, isSpecial: e.target.checked })}
-                  />
-                  <label htmlFor="isSpecial" className="text-[10px] md:text-xs font-bold uppercase cursor-pointer">Special Item (Max 2)</label>
-                </div>
                 <div className="flex items-center gap-2">
                    <input 
                     type="checkbox"

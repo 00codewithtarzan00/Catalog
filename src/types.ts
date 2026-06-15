@@ -26,6 +26,18 @@ export interface Notice {
   createdAt: number;
 }
 
+export interface BannerSetting {
+  type: 'none' | 'image' | 'video' | 'text';
+  url?: string;
+  urls?: string[];
+  text?: string;
+  bgColor?: string;
+  textColor?: string;
+  enableMarquee?: boolean;
+  marqueeDirection?: 'ltr' | 'rtl';
+  marqueeSpeed?: number;
+}
+
 export interface StoreConfig {
   logoUrl?: string;
   heroImageUrl?: string;
@@ -34,4 +46,6 @@ export interface StoreConfig {
   allCategoriesImageUrl?: string;
   bannerType?: 'none' | 'image' | 'video';
   bannerUrl?: string;
+  banner1?: BannerSetting;
+  banner2?: BannerSetting;
 }
