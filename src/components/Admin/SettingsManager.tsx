@@ -40,7 +40,6 @@ export default function SettingsManager() {
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showCategorySettings, setShowCategorySettings] = useState(false);
 
   const logoFileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
@@ -559,24 +558,47 @@ export default function SettingsManager() {
 
                 {config.banner1?.type !== "none" && (
                   <div className="space-y-3 pt-1 animate-fade-in">
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase font-bold text-gray-400">
-                        Banner Display Text (Optional/Marquee)
-                      </label>
-                      <input
-                        className="editorial-input h-9 text-xs"
-                        placeholder="Enter banner ticker or badge text..."
-                        value={config.banner1?.text || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            banner1: {
-                              ...(config.banner1 || { type: "none" }),
-                              text: e.target.value,
-                            },
-                          })
-                        }
-                      />
+                    <div className="grid grid-cols-3 gap-3 items-end">
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-[9px] uppercase font-bold text-gray-400">
+                          Banner Display Text (Optional/Marquee)
+                        </label>
+                        <input
+                          className="editorial-input h-9 text-xs"
+                          placeholder="Enter banner ticker or badge text..."
+                          value={config.banner1?.text || ""}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              banner1: {
+                                ...(config.banner1 || { type: "none" }),
+                                text: e.target.value,
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                      {config.banner1?.text && (
+                        <div className="space-y-1 animate-fade-in">
+                          <label className="text-[9px] uppercase font-bold text-gray-400">
+                            Text Color
+                          </label>
+                          <input
+                            type="color"
+                            className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
+                            value={config.banner1?.textColor || "#ffffff"}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                banner1: {
+                                  ...(config.banner1 || { type: "none" }),
+                                  textColor: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-brand-border/45 mt-2">
@@ -690,8 +712,9 @@ export default function SettingsManager() {
                               type="number"
                               min="1"
                               max="120"
+                              placeholder="25"
                               className="editorial-input h-8 text-[11px] text-center"
-                              value={config.banner1?.marqueeSpeed ?? 25}
+                              value={config.banner1?.marqueeSpeed ?? ""}
                               onChange={(e) => {
                                 const val =
                                   e.target.value === ""
@@ -983,24 +1006,47 @@ export default function SettingsManager() {
 
                 {config.banner2?.type !== "none" && (
                   <div className="space-y-3 pt-1 animate-fade-in">
-                    <div className="space-y-1">
-                      <label className="text-[9px] uppercase font-bold text-gray-400">
-                        Banner Display Text (Optional/Marquee)
-                      </label>
-                      <input
-                        className="editorial-input h-9 text-xs"
-                        placeholder="Enter banner ticker or badge text..."
-                        value={config.banner2?.text || ""}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            banner2: {
-                              ...(config.banner2 || { type: "none" }),
-                              text: e.target.value,
-                            },
-                          })
-                        }
-                      />
+                    <div className="grid grid-cols-3 gap-3 items-end">
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-[9px] uppercase font-bold text-gray-400">
+                          Banner Display Text (Optional/Marquee)
+                        </label>
+                        <input
+                          className="editorial-input h-9 text-xs"
+                          placeholder="Enter banner ticker or badge text..."
+                          value={config.banner2?.text || ""}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              banner2: {
+                                ...(config.banner2 || { type: "none" }),
+                                text: e.target.value,
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                      {config.banner2?.text && (
+                        <div className="space-y-1 animate-fade-in">
+                          <label className="text-[9px] uppercase font-bold text-gray-450">
+                            Text Color
+                          </label>
+                          <input
+                            type="color"
+                            className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
+                            value={config.banner2?.textColor || "#ffffff"}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                banner2: {
+                                  ...(config.banner2 || { type: "none" }),
+                                  textColor: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-brand-border/45 mt-2">
@@ -1114,8 +1160,9 @@ export default function SettingsManager() {
                               type="number"
                               min="1"
                               max="120"
+                              placeholder="25"
                               className="editorial-input h-8 text-[11px] text-center"
-                              value={config.banner2?.marqueeSpeed ?? 25}
+                              value={config.banner2?.marqueeSpeed ?? ""}
                               onChange={(e) => {
                                 const val =
                                   e.target.value === ""
@@ -1187,158 +1234,6 @@ export default function SettingsManager() {
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className="pt-4 border-t border-brand-border">
-              <button
-                type="button"
-                onClick={() => setShowCategorySettings(!showCategorySettings)}
-                className="flex items-center justify-between w-full py-2 hover:bg-gray-50 transition-colors rounded px-2 -mx-2"
-              >
-                <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted flex items-center gap-2">
-                  <ImageIcon className="w-3.5 h-3.5" /> Category Icons
-                </h3>
-                {showCategorySettings ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </button>
-
-              {showCategorySettings && (
-                <div className="mt-6 space-y-6">
-                  {/* All Items Category */}
-                  <div className="p-4 bg-brand-accent/5 border border-brand-accent/20 rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-brand-accent uppercase tracking-tight">
-                        All Items (Sab Saaman)
-                      </label>
-                    </div>
-
-                    <div className="flex gap-4 items-center">
-                      <div className="w-16 h-16 bg-white border border-brand-accent rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-sm">
-                        {config.allCategoriesImageUrl ? (
-                          <img
-                            src={config.allCategoriesImageUrl}
-                            alt="All Items"
-                            className="w-full h-full object-cover rounded-full"
-                          />
-                        ) : (
-                          <div className="text-[10px] text-gray-300 font-bold text-center">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            className="editorial-input h-9 px-3 text-[11px]"
-                            placeholder="Image URL"
-                            value={config.allCategoriesImageUrl || ""}
-                            onChange={(e) =>
-                              setConfig((prev) => ({
-                                ...prev,
-                                allCategoriesImageUrl: e.target.value,
-                              }))
-                            }
-                          />
-                          <button
-                            type="button"
-                            onClick={() => allCatFileRef.current?.click()}
-                            disabled={uploading === "allCategoriesImageUrl"}
-                            className="editorial-btn-secondary h-9 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-                          >
-                            <Upload
-                              className={`w-3.5 h-3.5 ${uploading === "allCategoriesImageUrl" ? "animate-bounce" : ""}`}
-                            />
-                          </button>
-                        </div>
-                        <input
-                          type="file"
-                          ref={allCatFileRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) =>
-                            handleFileUpload(e, "allCategoriesImageUrl")
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-brand-border my-4" />
-
-                  {CATEGORIES.map((cat) => (
-                    <div
-                      key={cat}
-                      className="p-4 bg-gray-50 border border-brand-border rounded-lg space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold text-brand-accent uppercase tracking-tight truncate max-w-[70%]">
-                          {cat}
-                        </label>
-                      </div>
-
-                      <div className="flex gap-4 items-center">
-                        <div className="w-16 h-16 bg-white border border-brand-border rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center p-0.5 shadow-sm">
-                          {config.categoryImages?.[cat] ? (
-                            <img
-                              src={config.categoryImages[cat]}
-                              alt={cat}
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            <div className="text-[10px] text-gray-300 font-bold text-center">
-                              No Image
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex-1 space-y-2">
-                          <div className="flex gap-2">
-                            <input
-                              className="editorial-input h-9 px-3 text-[11px]"
-                              placeholder="Image URL"
-                              value={config.categoryImages?.[cat] || ""}
-                              onChange={(e) =>
-                                setConfig((prev) => ({
-                                  ...prev,
-                                  categoryImages: {
-                                    ...(prev.categoryImages || {}),
-                                    [cat]: e.target.value,
-                                  },
-                                }))
-                              }
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                categoryFileRefs.current[cat]?.click()
-                              }
-                              disabled={uploading === cat}
-                              className="editorial-btn-secondary h-9 px-3 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-                            >
-                              <Upload
-                                className={`w-3.5 h-3.5 ${uploading === cat ? "animate-bounce" : ""}`}
-                              />
-                            </button>
-                          </div>
-                          <input
-                            type="file"
-                            ref={(el) => {
-                              categoryFileRefs.current[cat] = el;
-                            }}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, cat, true)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>

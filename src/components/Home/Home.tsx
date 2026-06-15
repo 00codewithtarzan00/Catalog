@@ -53,10 +53,12 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
             </div>
           ) : (
             <div 
+              key={`marquee-text-${banner.marqueeSpeed}-${isLTR}`}
               className={`${animationClass} hover:[animation-play-state:paused] flex whitespace-nowrap gap-16 text-xs sm:text-sm font-bold uppercase tracking-widest shrink-0`}
               style={{ 
-                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined,
-                '--marquee-duration': banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : '25s'
+                animation: `${isLTR ? "marquee-ltr" : "marquee-rtl"} ${banner.marqueeSpeed || 25}s linear infinite`,
+                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
+                "--marquee-duration": banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s"
               } as React.CSSProperties}
             >
               {/* Set 1 */}
@@ -101,9 +103,9 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
               {urls.map((url, idx) => (
                 <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0 bg-black">
                   {banner.type === 'image' ? (
-                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
+                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
                   ) : (
-                    <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
+                    <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                   )}
                 </div>
               ))}
@@ -111,10 +113,12 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
           ) : (
             /* Seamless continuous marquee of images/videos with 3px black gap/line */
             <div 
+              key={`marquee-media-${banner.marqueeSpeed}-${isLTR}`}
               className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[3px] bg-black`}
               style={{ 
-                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : undefined,
-                '--marquee-duration': banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : '25s'
+                animation: `${isLTR ? "marquee-ltr" : "marquee-rtl"} ${banner.marqueeSpeed || 25}s linear infinite`,
+                animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
+                "--marquee-duration": banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s"
               } as React.CSSProperties}
             >
               {/* Set 1 */}
@@ -122,9 +126,9 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
                 {marqueeUrls.map((url, idx) => (
                   <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
                     ) : (
-                      <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
+                      <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
                   </div>
                 ))}
@@ -134,9 +138,9 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
                 {marqueeUrls.map((url, idx) => (
                   <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-contain bg-black" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
                     ) : (
-                      <video src={url} className="w-full h-full object-contain bg-black" autoPlay loop playsInline muted />
+                      <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
                   </div>
                 ))}
@@ -146,10 +150,13 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
 
           {/* Content text overlay */}
           {banner.text && (
-            <div className="absolute inset-0 bg-black/25 flex items-center justify-center p-4 select-none z-30 pointer-events-none">
-              <div className="text-center font-display text-white drop-shadow-md px-5 py-2.5 sm:px-8 sm:py-4 bg-black/45 backdrop-blur-md rounded-lg border border-white/10 max-w-[85%]">
-                <h3 className="text-xs sm:text-sm md:text-lg font-bold uppercase tracking-widest leading-snug">{banner.text}</h3>
-              </div>
+            <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 select-none z-30 pointer-events-none bg-gradient-to-t from-black/40 to-transparent">
+              <h3 
+                className="text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-widest leading-snug text-center font-display drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-[95%]"
+                style={{ color: banner.textColor || '#ffffff' }}
+              >
+                {banner.text}
+              </h3>
             </div>
           )}
         </div>
