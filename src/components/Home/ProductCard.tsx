@@ -60,7 +60,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
             {product.category}
           </span>
          </div>
-        <h3 className="font-display font-medium text-sm sm:text-base md:text-[17px] leading-snug line-clamp-2 text-brand-text mb-1 h-11 sm:h-12 md:h-14 overflow-hidden">
+        <h3 className="font-display font-bold text-sm sm:text-base md:text-[17px] leading-snug line-clamp-2 text-brand-text mb-1 h-11 sm:h-12 md:h-14 overflow-hidden">
           {product.name}
         </h3>
         {product.showQuantity && product.quantityValue && (
