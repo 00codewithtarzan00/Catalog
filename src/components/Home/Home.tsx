@@ -338,7 +338,7 @@ export default function Home({ config }: HomeProps) {
       {renderBanner(config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null))}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
-      <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-white bg-opacity-95 transition-all duration-300">
+      <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-gray-100 bg-opacity-95 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10">
           <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-hide no-scrollbar -mx-4 px-4 overflow-y-visible">
             {/* All Categories */}
@@ -347,7 +347,7 @@ export default function Home({ config }: HomeProps) {
               className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                 !selectedCategory
                   ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
-                  : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
+                  : 'bg-white border-brand-border text-brand-muted hover:bg-gray-50'
               }`}
             >
               {showIcons && (
@@ -370,7 +370,7 @@ export default function Home({ config }: HomeProps) {
                   className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                     isSelected
                       ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
-                      : 'bg-gray-50 border-brand-border text-brand-muted hover:bg-gray-100'
+                      : 'bg-white border-brand-border text-brand-muted hover:bg-gray-50'
                   }`}
                 >
                   {showIcons && (
