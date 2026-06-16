@@ -355,7 +355,7 @@ export default function Home({ config }: HomeProps) {
                   {getCategoryIcon(null)}
                 </span>
               )}
-              <span className="text-[8px] xs:text-[9px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
+              <span className="text-[11px] sm:text-xs md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
                 ALL ITEMS
               </span>
             </button>
@@ -378,7 +378,7 @@ export default function Home({ config }: HomeProps) {
                       {getCategoryIcon(cat)}
                     </span>
                   )}
-                  <span className="text-[8px] xs:text-[9px] md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
+                  <span className="text-[11px] sm:text-xs md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
                     {cat.split('(')[0].trim().toUpperCase()}
                   </span>
                 </button>
