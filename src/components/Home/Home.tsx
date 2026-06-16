@@ -347,15 +347,15 @@ export default function Home({ config }: HomeProps) {
               className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                 !selectedCategory
                   ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
-                  : 'bg-white border-brand-border text-brand-muted hover:bg-gray-50'
+                  : 'bg-white border-black text-black hover:bg-gray-200'
               }`}
             >
               {showIcons && (
-                <span className={!selectedCategory ? 'text-white' : 'text-brand-accent/70'}>
+                <span className={!selectedCategory ? 'text-white' : 'text-black'}>
                   {getCategoryIcon(null)}
                 </span>
               )}
-              <span className="text-[11px] sm:text-xs md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
+              <span className="text-[11px] sm:text-xs md:text-[11px] font-extrabold tracking-wider uppercase whitespace-nowrap leading-none text-current">
                 ALL ITEMS
               </span>
             </button>
@@ -370,15 +370,15 @@ export default function Home({ config }: HomeProps) {
                   className={`flex flex-col md:flex-row items-center justify-center text-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 min-w-[64px] md:min-w-0 rounded-xl md:rounded-full border transition-all duration-300 flex-shrink-0 ${
                     isSelected
                       ? 'bg-brand-accent border-brand-accent text-white shadow-sm'
-                      : 'bg-white border-brand-border text-brand-muted hover:bg-gray-50'
+                      : 'bg-white border-black text-black hover:bg-gray-200'
                   }`}
                 >
                   {showIcons && (
-                    <span className={isSelected ? 'text-white' : 'text-brand-accent/70'}>
+                    <span className={isSelected ? 'text-white' : 'text-black'}>
                       {getCategoryIcon(cat)}
                     </span>
                   )}
-                  <span className="text-[11px] sm:text-xs md:text-[11px] font-bold tracking-wider uppercase whitespace-nowrap leading-none">
+                  <span className="text-[11px] sm:text-xs md:text-[11px] font-extrabold tracking-wider uppercase whitespace-nowrap leading-none text-current">
                     {cat.split('(')[0].trim().toUpperCase()}
                   </span>
                 </button>
