@@ -35,9 +35,10 @@ export interface BannerSetting {
   textColor?: string;
   textSize?: string;
   enableMarquee?: boolean;
-  style?: 'marquee' | 'spotlight' | 'grid';
+  style?: 'marquee' | 'spotlight' | 'grid' | 'carousel';
   marqueeDirection?: 'ltr' | 'rtl';
   marqueeSpeed?: number;
+  selectedUrlIdx?: number;
 }
 
 export interface StoreConfig {

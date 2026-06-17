@@ -8,7 +8,7 @@ import ProductCard from './ProductCard';
 import ProductFeedLayouts from './ProductFeedLayouts';
 import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
-import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2 } from 'lucide-react';
+import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-4") => {
   if (!category) return <Grid className={sizeClass} />;
@@ -67,7 +67,10 @@ const renderBanner = (
     ? (banner.style === 'marquee') 
     : (isBanner2 ? (banner.enableMarquee === true) : (banner.enableMarquee !== false));
 
-  const selectedStyle = banner.style || (isMarqueeEnabled ? 'marquee' : 'spotlight');
+  let selectedStyle = banner.style || (isMarqueeEnabled ? 'marquee' : 'carousel');
+  if (selectedStyle === 'spotlight') {
+    selectedStyle = 'carousel';
+  }
 
   const isLTR = banner.marqueeDirection === 'ltr';
   const animationClass = isLTR ? 'animate-marquee-ltr' : 'animate-marquee-rtl';
@@ -131,15 +134,15 @@ const renderBanner = (
     return (
       <section className="w-full overflow-hidden bg-black border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
         <div className="w-full relative overflow-hidden flex items-center bg-black">
-          {selectedStyle === 'spotlight' ? (
-            /* Interactive Spotlight Showcase style banner: show selected item, tick index to pin/lock */
-            <div className="relative w-full h-[130px] sm:h-[180px] md:h-[240px] bg-black overflow-hidden flex items-center justify-center">
+          {selectedStyle === 'carousel' ? (
+            /* Elegant Standard Banner Carousel with next/prev buttons and indicator dots */
+            <div className="relative w-full h-[130px] sm:h-[180px] md:h-[240px] bg-black overflow-hidden flex items-center justify-center group/carousel shadow-inner">
               {urls[activeIdx] ? (
                 banner.type === 'image' ? (
                   <img 
                     src={urls[activeIdx]} 
-                    alt={`Static Banner-${activeIdx}`} 
-                    className="w-full h-full object-fill bg-black select-none" 
+                    alt={`Carousel Banner-${activeIdx}`} 
+                    className="w-full h-full object-fill bg-black select-none transition-all duration-500" 
                     referrerPolicy="no-referrer" 
                   />
                 ) : (
@@ -154,44 +157,72 @@ const renderBanner = (
                 )
               ) : null}
 
-              {/* Pin Selection Widget overlay */}
+              {/* Prev Button Overlay */}
               {urls.length > 1 && setActiveIdx && (
-                <div className="absolute top-3 right-3 z-30 bg-black/75 backdrop-blur-md border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md">
-                  <span className="text-[9px] uppercase tracking-wider font-mono text-gray-400 font-bold hidden sm:inline select-none">Pin:</span>
-                  <div className="flex gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
-                    {urls.map((_: any, idx: number) => {
-                      const isSelected = idx === activeIdx;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setActiveIdx(idx)}
-                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-                            isSelected 
-                              ? 'bg-brand-accent text-white scale-110 shadow-sm border border-brand-accent' 
-                              : 'bg-white/10 text-transparent border border-white/15 hover:bg-white/20'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
-                        </button>
-                      );
-                    })}
-                  </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveIdx((activeIdx - 1 + urls.length) % urls.length)}
+                  className="absolute left-3 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
+                >
+                  <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+                </button>
+              )}
+
+              {/* Next Button Overlay */}
+              {urls.length > 1 && setActiveIdx && (
+                <button
+                  type="button"
+                  onClick={() => setActiveIdx((activeIdx + 1) % urls.length)}
+                  className="absolute right-3 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
+                >
+                  <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                </button>
+              )}
+
+              {/* Indicator dots centered at the bottom of the banner */}
+              {urls.length > 1 && setActiveIdx && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm">
+                  {urls.map((_: any, idx: number) => {
+                    const isSelected = idx === activeIdx;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveIdx(idx)}
+                        className={`h-1.5 rounded-full cursor-pointer transition-all duration-300 ${
+                          isSelected 
+                            ? 'w-4 bg-brand-accent' 
+                            : 'w-1.5 bg-white/40 hover:bg-white/60'
+                        }`}
+                        title={`Slide ${idx + 1}`}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
           ) : selectedStyle === 'grid' ? (
-            /* Static images/videos side-by-side in a responsive flex layout with 3px black gap/line */
-            <div className="w-full flex flex-wrap sm:flex-nowrap gap-[3px] bg-black">
-              {urls.map((url, idx) => (
-                <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0 bg-black">
-                  {banner.type === 'image' ? (
-                    <img src={url} alt={`Static Banner-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
-                  ) : (
-                    <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
-                  )}
-                </div>
-              ))}
+            /* Static Single selected image/video as requested: show only the selected ticked image in full-width, not all */
+            <div className="w-full h-[130px] sm:h-[180px] md:h-[240px] relative bg-black flex items-center justify-center">
+              {urls[activeIdx] ? (
+                banner.type === 'image' ? (
+                  <img 
+                    src={urls[activeIdx]} 
+                    alt={`Static Selected Banner-${activeIdx}`} 
+                    className="w-full h-full object-fill bg-black select-none" 
+                    referrerPolicy="no-referrer" 
+                  />
+                ) : (
+                  <video 
+                    src={urls[activeIdx]} 
+                    className="w-full h-full object-fill bg-black" 
+                    autoPlay 
+                    loop 
+                    playsInline 
+                    muted 
+                  />
+                )
+              ) : null}
             </div>
           ) : (
             /* Seamless continuous marquee of images/videos with 3px black gap/line */
@@ -276,6 +307,72 @@ export default function Home({ config }: HomeProps) {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const isSearchEmpty = searchQuery.trim() === '';
+
+  // Synchronize starting indexes with custom ticked image (selectedUrlIdx) if set in Admin panel
+  useEffect(() => {
+    if (config.banner1 && typeof config.banner1.selectedUrlIdx === 'number') {
+      const urlsLen = config.banner1.urls?.length || 0;
+      if (config.banner1.selectedUrlIdx >= 0 && config.banner1.selectedUrlIdx < (urlsLen || 1)) {
+        setActiveBanner1Idx(config.banner1.selectedUrlIdx);
+      }
+    }
+  }, [config.banner1?.selectedUrlIdx, config.banner1?.urls?.length]);
+
+  useEffect(() => {
+    if (config.banner2 && typeof config.banner2.selectedUrlIdx === 'number') {
+      const urlsLen = config.banner2.urls?.length || 0;
+      if (config.banner2.selectedUrlIdx >= 0 && config.banner2.selectedUrlIdx < (urlsLen || 1)) {
+        setActiveBanner2Idx(config.banner2.selectedUrlIdx);
+      }
+    }
+  }, [config.banner2?.selectedUrlIdx, config.banner2?.urls?.length]);
+
+  // Auto-slide effect for Banner 1 and Banner 2
+  useEffect(() => {
+    const banner1 = config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null);
+    if (!banner1 || banner1.type === 'none') return;
+    const urls = banner1.urls && banner1.urls.length > 0 
+      ? banner1.urls.filter(Boolean) 
+      : banner1.url ? [banner1.url] : [];
+    if (urls.length <= 1) return;
+
+    const isMarqueeEnabled = banner1.style 
+      ? (banner1.style === 'marquee') 
+      : (banner1.enableMarquee !== false);
+    let selectedStyle = banner1.style || (isMarqueeEnabled ? 'marquee' : 'carousel');
+    if (selectedStyle === 'spotlight') selectedStyle = 'carousel';
+    
+    if (selectedStyle !== 'carousel') return;
+
+    const interval = setInterval(() => {
+      setActiveBanner1Idx((prev) => (prev + 1) % urls.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [config.banner1, config.bannerType, config.bannerUrl]);
+
+  useEffect(() => {
+    const banner2 = config.banner2;
+    if (!banner2 || banner2.type === 'none') return;
+    const urls = banner2.urls && banner2.urls.length > 0 
+      ? banner2.urls.filter(Boolean) 
+      : banner2.url ? [banner2.url] : [];
+    if (urls.length <= 1) return;
+
+    const isMarqueeEnabled = banner2.style 
+      ? (banner2.style === 'marquee') 
+      : (banner2.enableMarquee === true);
+    let selectedStyle = banner2.style || (isMarqueeEnabled ? 'marquee' : 'carousel');
+    if (selectedStyle === 'spotlight') selectedStyle = 'carousel';
+
+    if (selectedStyle !== 'carousel') return;
+
+    const interval = setInterval(() => {
+      setActiveBanner2Idx((prev) => (prev + 1) % urls.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [config.banner2]);
 
   useEffect(() => {
     // Dynamic SEO update

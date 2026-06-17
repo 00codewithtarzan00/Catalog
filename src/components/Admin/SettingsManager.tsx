@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
   Video,
+  Check,
 } from "lucide-react";
 import { CATEGORIES } from "../../constants";
 import { compressImage } from "../../lib/utils";
@@ -397,38 +398,97 @@ export default function SettingsManager() {
                           Banner Media List ({items.length} items)
                         </div>
 
+                        {/* Full width preview for Ticked Image */}
+                        {items.length > 1 && (
+                          <div className="mb-4 overflow-hidden rounded border border-brand-border bg-black relative w-full aspect-[21/9] flex items-center justify-center shadow-sm">
+                            {(() => {
+                              const selectedIdx = config.banner1?.selectedUrlIdx ?? 0;
+                              const selectedUrl = items[selectedIdx] || items[0] || "";
+                              return selectedUrl ? (
+                                config.banner1?.type === "image" ? (
+                                  <img
+                                    src={selectedUrl}
+                                    alt="Selected Ticked Preview"
+                                    className="w-full h-full object-fill select-none"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <video
+                                    src={selectedUrl}
+                                    muted
+                                    loop
+                                    autoPlay
+                                    className="w-full h-full object-fill"
+                                  />
+                                )
+                              ) : (
+                                <div className="text-gray-400 font-mono text-[10px] uppercase font-bold">
+                                  Empty Slot
+                                </div>
+                              );
+                            })()}
+                            <div className="absolute top-2 left-2 bg-brand-accent/90 backdrop-blur-sm px-2 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold text-white border border-brand-accent/25">
+                              Ticked Preview (Full Width)
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                           {items.map((url, idx) => {
                             const uploadKey = `banner1-${idx}`;
                             const isUploading = uploading === uploadKey;
+                            const isTicked = (config.banner1?.selectedUrlIdx ?? 0) === idx;
                             return (
                               <div
                                 key={idx}
-                                className="flex gap-3 items-start bg-gray-55/55 p-2.5 rounded border border-brand-border animate-fade-in"
+                                className="flex gap-3 items-center bg-gray-55/55 p-2.5 rounded border border-brand-border animate-fade-in"
                               >
-                                <div className="w-14 h-10 bg-white border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
-                                  {url ? (
-                                    config.banner1?.type === "image" ? (
-                                      <img
-                                        src={url}
-                                        alt={`Preview ${idx}`}
-                                        className="w-full h-full object-cover"
-                                      />
+                                {/* Checkbox in front of each image */}
+                                {items.length > 1 && (
+                                  <div className="flex items-center justify-center shrink-0 pr-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={isTicked}
+                                      onChange={() => {
+                                        setConfig({
+                                          ...config,
+                                          banner1: {
+                                            ...(config.banner1 || { type: "image" }),
+                                            selectedUrlIdx: idx,
+                                          },
+                                        });
+                                      }}
+                                      className="w-4 h-4 rounded-full border-gray-300 text-brand-accent focus:ring-brand-accent cursor-pointer accent-brand-accent"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Miniature thumbnail shown only if NOT more than 1 image */}
+                                {items.length <= 1 && (
+                                  <div className="w-14 h-10 bg-white border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                    {url ? (
+                                      config.banner1?.type === "image" ? (
+                                        <img
+                                          src={url}
+                                          alt={`Preview ${idx}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <video
+                                          src={url}
+                                          muted
+                                          loop
+                                          autoPlay
+                                          className="w-full h-full object-cover"
+                                        />
+                                      )
                                     ) : (
-                                      <video
-                                        src={url}
-                                        muted
-                                        loop
-                                        autoPlay
-                                        className="w-full h-full object-cover"
-                                      />
-                                    )
-                                  ) : (
-                                    <div className="text-[8px] text-gray-300 font-bold uppercase mt-1">
-                                      Empty
-                                    </div>
-                                  )}
-                                </div>
+                                      <div className="text-[8px] text-gray-300 font-bold uppercase mt-1">
+                                        Empty
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
 
                                 <div className="flex-1 space-y-1">
                                   <div className="flex gap-2">
@@ -641,7 +701,7 @@ export default function SettingsManager() {
                           </label>
                           <select
                             className="editorial-input h-9 text-[11px] bg-white cursor-pointer"
-                            value={config.banner1?.style || (config.banner1?.enableMarquee !== false ? "marquee" : "spotlight")}
+                            value={config.banner1?.style === 'spotlight' ? 'carousel' : (config.banner1?.style || (config.banner1?.enableMarquee !== false ? "marquee" : "carousel"))}
                             onChange={(e) =>
                               setConfig({
                                 ...config,
@@ -654,7 +714,7 @@ export default function SettingsManager() {
                             }
                           >
                             <option value="marquee">Continuous Scroll/Moving Loop (Marquee)</option>
-                            <option value="spotlight">Interactive Spotlight (Click Circle to Pin Image)</option>
+                            <option value="carousel">Standard Carousel (Slide Banner with Arrows & Dots)</option>
                             <option value="grid">Static Grid Showcase (Side-by-side Images)</option>
                           </select>
                         </div>
@@ -861,38 +921,97 @@ export default function SettingsManager() {
                           Banner Media List ({items.length} items)
                         </div>
 
+                        {/* Full width preview for Ticked Image */}
+                        {items.length > 1 && (
+                          <div className="mb-4 overflow-hidden rounded border border-brand-border bg-black relative w-full aspect-[21/9] flex items-center justify-center shadow-sm">
+                            {(() => {
+                              const selectedIdx = config.banner2?.selectedUrlIdx ?? 0;
+                              const selectedUrl = items[selectedIdx] || items[0] || "";
+                              return selectedUrl ? (
+                                config.banner2?.type === "image" ? (
+                                  <img
+                                    src={selectedUrl}
+                                    alt="Selected Ticked Preview"
+                                    className="w-full h-full object-fill select-none"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <video
+                                    src={selectedUrl}
+                                    muted
+                                    loop
+                                    autoPlay
+                                    className="w-full h-full object-fill"
+                                  />
+                                )
+                              ) : (
+                                <div className="text-gray-400 font-mono text-[10px] uppercase font-bold">
+                                  Empty Slot
+                                </div>
+                              );
+                            })()}
+                            <div className="absolute top-2 left-2 bg-brand-accent/90 backdrop-blur-sm px-2 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold text-white border border-brand-accent/25">
+                              Ticked Preview (Full Width)
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                           {items.map((url, idx) => {
                             const uploadKey = `banner2-${idx}`;
                             const isUploading = uploading === uploadKey;
+                            const isTicked = (config.banner2?.selectedUrlIdx ?? 0) === idx;
                             return (
                               <div
                                 key={idx}
-                                className="flex gap-3 items-start bg-gray-55/55 p-2.5 rounded border border-brand-border animate-fade-in"
+                                className="flex gap-3 items-center bg-gray-55/55 p-2.5 rounded border border-brand-border animate-fade-in"
                               >
-                                <div className="w-14 h-10 bg-white border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
-                                  {url ? (
-                                    config.banner2?.type === "image" ? (
-                                      <img
-                                        src={url}
-                                        alt={`Preview ${idx}`}
-                                        className="w-full h-full object-cover"
-                                      />
+                                {/* Checkbox in front of each image */}
+                                {items.length > 1 && (
+                                  <div className="flex items-center justify-center shrink-0 pr-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={isTicked}
+                                      onChange={() => {
+                                        setConfig({
+                                          ...config,
+                                          banner2: {
+                                            ...(config.banner2 || { type: "image" }),
+                                            selectedUrlIdx: idx,
+                                          },
+                                        });
+                                      }}
+                                      className="w-4 h-4 rounded-full border-gray-300 text-brand-accent focus:ring-brand-accent cursor-pointer accent-brand-accent"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Miniature thumbnail shown only if NOT more than 1 image */}
+                                {items.length <= 1 && (
+                                  <div className="w-14 h-10 bg-white border border-brand-border rounded flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                    {url ? (
+                                      config.banner2?.type === "image" ? (
+                                        <img
+                                          src={url}
+                                          alt={`Preview ${idx}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <video
+                                          src={url}
+                                          muted
+                                          loop
+                                          autoPlay
+                                          className="w-full h-full object-cover"
+                                        />
+                                      )
                                     ) : (
-                                      <video
-                                        src={url}
-                                        muted
-                                        loop
-                                        autoPlay
-                                        className="w-full h-full object-cover"
-                                      />
-                                    )
-                                  ) : (
-                                    <div className="text-[8px] text-gray-300 font-bold uppercase mt-1">
-                                      Empty
-                                    </div>
-                                  )}
-                                </div>
+                                      <div className="text-[8px] text-gray-300 font-bold uppercase mt-1">
+                                        Empty
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
 
                                 <div className="flex-1 space-y-1">
                                   <div className="flex gap-2">
@@ -1103,9 +1222,9 @@ export default function SettingsManager() {
                           <label className="text-[11px] font-bold text-brand-dark">
                             Select Animation Style:
                           </label>
-                          <select
+                           <select
                             className="editorial-input h-9 text-[11px] bg-white cursor-pointer"
-                            value={config.banner2?.style || (config.banner2?.enableMarquee === true ? "marquee" : "spotlight")}
+                            value={config.banner2?.style === 'spotlight' ? 'carousel' : (config.banner2?.style || (config.banner2?.enableMarquee === true ? "marquee" : "carousel"))}
                             onChange={(e) =>
                               setConfig({
                                 ...config,
@@ -1118,7 +1237,7 @@ export default function SettingsManager() {
                             }
                           >
                             <option value="marquee">Continuous Scroll/Moving Loop (Marquee)</option>
-                            <option value="spotlight">Interactive Spotlight (Click Circle to Pin Image)</option>
+                            <option value="carousel">Standard Carousel (Slide Banner with Arrows & Dots)</option>
                             <option value="grid">Static Grid Showcase (Side-by-side Images)</option>
                           </select>
                         </div>
