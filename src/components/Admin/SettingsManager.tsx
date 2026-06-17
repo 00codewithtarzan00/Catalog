@@ -632,141 +632,128 @@ export default function SettingsManager() {
 
                     <div className="pt-2 border-t border-brand-border/45 mt-2">
                       <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">
-                        Marquee Style & Scroll Controls
+                        Banner 1 Display & Animation Style
                       </div>
                       <div className="space-y-3 bg-white p-2.5 border border-brand-border rounded">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2.5 border-b border-brand-border/45">
-                          {/* Toggle on/off */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold text-brand-dark">
-                              Marquee Loop:
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const currentVal =
-                                  config.banner1?.enableMarquee !== false;
-                                setConfig({
-                                  ...config,
-                                  banner1: {
-                                    ...(config.banner1 || { type: "none" }),
-                                    enableMarquee: !currentVal,
-                                  },
-                                });
-                              }}
-                              className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                config.banner1?.enableMarquee !== false
-                                  ? "bg-brand-accent"
-                                  : "bg-gray-200"
-                              }`}
-                            >
-                              <span
-                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                  config.banner1?.enableMarquee !== false
-                                    ? "translate-x-5"
-                                    : "translate-x-0"
-                                }`}
-                              />
-                            </button>
-                            <span className="text-[10px] font-bold uppercase text-brand-muted">
-                              {config.banner1?.enableMarquee !== false
-                                ? "ON"
-                                : "OFF"}
-                            </span>
-                          </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-brand-dark">
+                            Select Animation Style:
+                          </label>
+                          <select
+                            className="editorial-input h-9 text-[11px] bg-white cursor-pointer"
+                            value={config.banner1?.style || (config.banner1?.enableMarquee !== false ? "marquee" : "spotlight")}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                banner1: {
+                                  ...(config.banner1 || { type: "none" }),
+                                  style: e.target.value as any,
+                                  enableMarquee: e.target.value === "marquee"
+                                },
+                              })
+                            }
+                          >
+                            <option value="marquee">Continuous Scroll/Moving Loop (Marquee)</option>
+                            <option value="spotlight">Interactive Spotlight (Click Circle to Pin Image)</option>
+                            <option value="grid">Static Grid Showcase (Side-by-side Images)</option>
+                          </select>
+                        </div>
 
-                          {/* Direction Selection */}
-                          <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-bold text-brand-dark">
-                              Direction:
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                        {(config.banner1?.style === "marquee" || (!config.banner1?.style && config.banner1?.enableMarquee !== false)) && (
+                          <div className="space-y-3 pt-2 border-t border-dashed border-gray-200">
+                            {/* Direction Selection */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-brand-border/45">
+                              <span className="text-[11px] font-bold text-brand-dark">
+                                Scroll Direction:
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                                  <input
+                                    type="radio"
+                                    name="banner1-direction"
+                                    value="rtl"
+                                    checked={
+                                      (config.banner1?.marqueeDirection ||
+                                        "rtl") === "rtl"
+                                    }
+                                    onChange={() =>
+                                      setConfig({
+                                        ...config,
+                                        banner1: {
+                                          ...(config.banner1 || { type: "none" }),
+                                          marqueeDirection: "rtl",
+                                        },
+                                      })
+                                    }
+                                    className="accent-brand-accent h-3.5 w-3.5"
+                                  />
+                                  Right to Left
+                                </label>
+                                <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                                  <input
+                                    type="radio"
+                                    name="banner1-direction"
+                                    value="ltr"
+                                    checked={
+                                      config.banner1?.marqueeDirection === "ltr"
+                                    }
+                                    onChange={() =>
+                                      setConfig({
+                                        ...config,
+                                        banner1: {
+                                          ...(config.banner1 || { type: "none" }),
+                                          marqueeDirection: "ltr",
+                                        },
+                                      })
+                                    }
+                                    className="accent-brand-accent h-3.5 w-3.5"
+                                  />
+                                  Left to Right
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Speed input control */}
+                            <div className="flex items-center justify-between gap-4">
+                              <label className="text-[11px] font-bold text-brand-dark flex flex-col">
+                                <span>Scroll Speed (seconds)</span>
+                                <span className="text-[9px] text-gray-400 font-normal">
+                                  Less seconds = faster scroll. Default: 25.
+                                </span>
+                              </label>
+                              <div className="flex items-center gap-2 w-28 shrink-0">
                                 <input
-                                  type="radio"
-                                  name="banner1-direction"
-                                  value="rtl"
-                                  checked={
-                                    (config.banner1?.marqueeDirection ||
-                                      "rtl") === "rtl"
-                                  }
-                                  onChange={() =>
+                                  type="number"
+                                  min="1"
+                                  max="120"
+                                  placeholder="25"
+                                  className="editorial-input h-8 text-[11px] text-center"
+                                  value={config.banner1?.marqueeSpeed ?? ""}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === ""
+                                        ? ""
+                                        : Math.max(
+                                            1,
+                                            parseInt(e.target.value) || 1,
+                                          );
                                     setConfig({
                                       ...config,
                                       banner1: {
                                         ...(config.banner1 || { type: "none" }),
-                                        marqueeDirection: "rtl",
+                                        marqueeSpeed:
+                                          val === "" ? undefined : val,
                                       },
-                                    })
-                                  }
-                                  className="accent-brand-accent h-3.5 w-3.5"
+                                    });
+                                  }}
                                 />
-                                Right to Left
-                              </label>
-                              <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
-                                <input
-                                  type="radio"
-                                  name="banner1-direction"
-                                  value="ltr"
-                                  checked={
-                                    config.banner1?.marqueeDirection === "ltr"
-                                  }
-                                  onChange={() =>
-                                    setConfig({
-                                      ...config,
-                                      banner1: {
-                                        ...(config.banner1 || { type: "none" }),
-                                        marqueeDirection: "ltr",
-                                      },
-                                    })
-                                  }
-                                  className="accent-brand-accent h-3.5 w-3.5"
-                                />
-                                Left to Right
-                              </label>
+                                <span className="text-[11px] text-brand-muted font-bold">
+                                  sec
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Speed input control */}
-                        <div className="flex items-center justify-between gap-4">
-                          <label className="text-[11px] font-bold text-brand-dark flex flex-col">
-                            <span>Scroll Speed (seconds)</span>
-                            <span className="text-[9px] text-gray-400 font-normal">
-                              Less seconds = faster scroll. Default: 25.
-                            </span>
-                          </label>
-                          <div className="flex items-center gap-2 w-28 shrink-0">
-                            <input
-                              type="number"
-                              min="1"
-                              max="120"
-                              placeholder="25"
-                              className="editorial-input h-8 text-[11px] text-center"
-                              value={config.banner1?.marqueeSpeed ?? ""}
-                              onChange={(e) => {
-                                const val =
-                                  e.target.value === ""
-                                    ? ""
-                                    : Math.max(
-                                        1,
-                                        parseInt(e.target.value) || 1,
-                                      );
-                                setConfig({
-                                  ...config,
-                                  banner1: {
-                                    ...(config.banner1 || { type: "none" }),
-                                    marqueeSpeed:
-                                      val === "" ? undefined : val,
-                                  },
-                                });
-                              }}
-                            />
-                            <span className="text-[11px] text-brand-muted font-bold">
-                              sec
-                            </span>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1109,141 +1096,128 @@ export default function SettingsManager() {
 
                     <div className="pt-2 border-t border-brand-border/45 mt-2">
                       <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">
-                        Marquee Style & Scroll Controls
+                        Banner 2 Display & Animation Style
                       </div>
                       <div className="space-y-3 bg-white p-2.5 border border-brand-border rounded">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2.5 border-b border-brand-border/45">
-                          {/* Toggle on/off */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold text-brand-dark">
-                              Marquee Loop:
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const currentVal =
-                                  config.banner2?.enableMarquee === true;
-                                setConfig({
-                                  ...config,
-                                  banner2: {
-                                    ...(config.banner2 || { type: "none" }),
-                                    enableMarquee: !currentVal,
-                                  },
-                                });
-                              }}
-                              className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                config.banner2?.enableMarquee === true
-                                  ? "bg-brand-accent"
-                                  : "bg-gray-200"
-                              }`}
-                            >
-                              <span
-                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                  config.banner2?.enableMarquee === true
-                                    ? "translate-x-5"
-                                    : "translate-x-0"
-                                }`}
-                              />
-                            </button>
-                            <span className="text-[10px] font-bold uppercase text-brand-muted">
-                              {config.banner2?.enableMarquee === true
-                                ? "ON"
-                                : "OFF"}
-                            </span>
-                          </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-brand-dark">
+                            Select Animation Style:
+                          </label>
+                          <select
+                            className="editorial-input h-9 text-[11px] bg-white cursor-pointer"
+                            value={config.banner2?.style || (config.banner2?.enableMarquee === true ? "marquee" : "spotlight")}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                banner2: {
+                                  ...(config.banner2 || { type: "none" }),
+                                  style: e.target.value as any,
+                                  enableMarquee: e.target.value === "marquee"
+                                },
+                              })
+                            }
+                          >
+                            <option value="marquee">Continuous Scroll/Moving Loop (Marquee)</option>
+                            <option value="spotlight">Interactive Spotlight (Click Circle to Pin Image)</option>
+                            <option value="grid">Static Grid Showcase (Side-by-side Images)</option>
+                          </select>
+                        </div>
 
-                          {/* Direction Selection */}
-                          <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-bold text-brand-dark">
-                              Direction:
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                        {(config.banner2?.style === "marquee" || (!config.banner2?.style && config.banner2?.enableMarquee === true)) && (
+                          <div className="space-y-3 pt-2 border-t border-dashed border-gray-200">
+                            {/* Direction Selection */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-brand-border/45">
+                              <span className="text-[11px] font-bold text-brand-dark">
+                                Scroll Direction:
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                                  <input
+                                    type="radio"
+                                    name="banner2-direction"
+                                    value="rtl"
+                                    checked={
+                                      (config.banner2?.marqueeDirection ||
+                                        "rtl") === "rtl"
+                                    }
+                                    onChange={() =>
+                                      setConfig({
+                                        ...config,
+                                        banner2: {
+                                          ...(config.banner2 || { type: "none" }),
+                                          marqueeDirection: "rtl",
+                                        },
+                                      })
+                                    }
+                                    className="accent-brand-accent h-3.5 w-3.5"
+                                  />
+                                  Right to Left
+                                </label>
+                                <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
+                                  <input
+                                    type="radio"
+                                    name="banner2-direction"
+                                    value="ltr"
+                                    checked={
+                                      config.banner2?.marqueeDirection === "ltr"
+                                    }
+                                    onChange={() =>
+                                      setConfig({
+                                        ...config,
+                                        banner2: {
+                                          ...(config.banner2 || { type: "none" }),
+                                          marqueeDirection: "ltr",
+                                        },
+                                      })
+                                    }
+                                    className="accent-brand-accent h-3.5 w-3.5"
+                                  />
+                                  Left to Right
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Speed input control */}
+                            <div className="flex items-center justify-between gap-4">
+                              <label className="text-[11px] font-bold text-brand-dark flex flex-col">
+                                <span>Scroll Speed (seconds)</span>
+                                <span className="text-[9px] text-gray-400 font-normal">
+                                  Less seconds = faster scroll. Default: 25.
+                                </span>
+                              </label>
+                              <div className="flex items-center gap-2 w-28 shrink-0">
                                 <input
-                                  type="radio"
-                                  name="banner2-direction"
-                                  value="rtl"
-                                  checked={
-                                    (config.banner2?.marqueeDirection ||
-                                      "rtl") === "rtl"
-                                  }
-                                  onChange={() =>
+                                  type="number"
+                                  min="1"
+                                  max="120"
+                                  placeholder="25"
+                                  className="editorial-input h-8 text-[11px] text-center"
+                                  value={config.banner2?.marqueeSpeed ?? ""}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === ""
+                                        ? ""
+                                        : Math.max(
+                                            1,
+                                            parseInt(e.target.value) || 1,
+                                          );
                                     setConfig({
                                       ...config,
                                       banner2: {
                                         ...(config.banner2 || { type: "none" }),
-                                        marqueeDirection: "rtl",
+                                        marqueeSpeed:
+                                          val === "" ? undefined : val,
                                       },
-                                    })
-                                  }
-                                  className="accent-brand-accent h-3.5 w-3.5"
+                                    });
+                                  }}
                                 />
-                                Right to Left
-                              </label>
-                              <label className="flex items-center gap-1 cursor-pointer text-[11px] text-brand-dark select-none font-medium">
-                                <input
-                                  type="radio"
-                                  name="banner2-direction"
-                                  value="ltr"
-                                  checked={
-                                    config.banner2?.marqueeDirection === "ltr"
-                                  }
-                                  onChange={() =>
-                                    setConfig({
-                                      ...config,
-                                      banner2: {
-                                        ...(config.banner2 || { type: "none" }),
-                                        marqueeDirection: "ltr",
-                                      },
-                                    })
-                                  }
-                                  className="accent-brand-accent h-3.5 w-3.5"
-                                />
-                                Left to Right
-                              </label>
+                                <span className="text-[11px] text-brand-muted font-bold">
+                                  sec
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Speed input control */}
-                        <div className="flex items-center justify-between gap-4">
-                          <label className="text-[11px] font-bold text-brand-dark flex flex-col">
-                            <span>Scroll Speed (seconds)</span>
-                            <span className="text-[9px] text-gray-400 font-normal">
-                              Less seconds = faster scroll. Default: 25.
-                            </span>
-                          </label>
-                          <div className="flex items-center gap-2 w-28 shrink-0">
-                            <input
-                              type="number"
-                              min="1"
-                              max="120"
-                              placeholder="25"
-                              className="editorial-input h-8 text-[11px] text-center"
-                              value={config.banner2?.marqueeSpeed ?? ""}
-                              onChange={(e) => {
-                                const val =
-                                  e.target.value === ""
-                                    ? ""
-                                    : Math.max(
-                                        1,
-                                        parseInt(e.target.value) || 1,
-                                      );
-                                setConfig({
-                                  ...config,
-                                  banner2: {
-                                    ...(config.banner2 || { type: "none" }),
-                                    marqueeSpeed:
-                                      val === "" ? undefined : val,
-                                  },
-                                });
-                              }}
-                            />
-                            <span className="text-[11px] text-brand-muted font-bold">
-                              sec
-                            </span>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1293,6 +1267,9 @@ export default function SettingsManager() {
                 )}
               </div>
             </div>
+
+
+
           </div>
         </div>
 

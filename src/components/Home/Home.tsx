@@ -5,9 +5,10 @@ import { Product, StoreConfig } from '../../types';
 import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
 import ProductCard from './ProductCard';
+import ProductFeedLayouts from './ProductFeedLayouts';
 import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import { motion } from 'motion/react';
-import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil } from 'lucide-react';
+import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2 } from 'lucide-react';
 
 const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-4") => {
   if (!category) return <Grid className={sizeClass} />;
@@ -48,7 +49,12 @@ const getTextSizeClasses = (size: string | undefined, isTextBanner: boolean = fa
   }
 };
 
-const renderBanner = (banner: any, isBanner2: boolean = false) => {
+const renderBanner = (
+  banner: any, 
+  isBanner2: boolean = false, 
+  activeIdx: number = 0, 
+  setActiveIdx?: (idx: number) => void
+) => {
   if (!banner || banner.type === 'none') return null;
 
   const urls = banner.urls && banner.urls.length > 0 
@@ -57,9 +63,11 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
 
   if (urls.length === 0 && banner.type !== 'text') return null;
 
-  const isMarqueeEnabled = isBanner2 
-    ? (banner.enableMarquee === true) 
-    : (banner.enableMarquee !== false);
+  const isMarqueeEnabled = banner.style 
+    ? (banner.style === 'marquee') 
+    : (isBanner2 ? (banner.enableMarquee === true) : (banner.enableMarquee !== false));
+
+  const selectedStyle = banner.style || (isMarqueeEnabled ? 'marquee' : 'spotlight');
 
   const isLTR = banner.marqueeDirection === 'ltr';
   const animationClass = isLTR ? 'animate-marquee-ltr' : 'animate-marquee-rtl';
@@ -73,7 +81,7 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
         style={{ backgroundColor: banner.bgColor || '#0047AB', color: banner.textColor || '#ffffff' }}
       >
         <div className="py-2.5 w-full overflow-hidden relative">
-          {!isMarqueeEnabled ? (
+          {selectedStyle !== 'marquee' ? (
             <div className={`w-full text-center font-bold uppercase tracking-widest px-4 py-1 ${getTextSizeClasses(banner.textSize, true)}`}>
               <span>✨ {textValue} ✨</span>
             </div>
@@ -114,7 +122,7 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
 
   if (banner.type === 'image' || banner.type === 'video') {
     let marqueeUrls = [...urls];
-    if (marqueeUrls.length > 0 && isMarqueeEnabled) {
+    if (marqueeUrls.length > 0 && selectedStyle === 'marquee') {
       while (marqueeUrls.length < 15) {
         marqueeUrls = [...marqueeUrls, ...urls];
       }
@@ -123,8 +131,57 @@ const renderBanner = (banner: any, isBanner2: boolean = false) => {
     return (
       <section className="w-full overflow-hidden bg-black border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
         <div className="w-full relative overflow-hidden flex items-center bg-black">
-          {!isMarqueeEnabled ? (
-            /* Static images/videos side-by-side with 3px black gap/line */
+          {selectedStyle === 'spotlight' ? (
+            /* Interactive Spotlight Showcase style banner: show selected item, tick index to pin/lock */
+            <div className="relative w-full h-[130px] sm:h-[180px] md:h-[240px] bg-black overflow-hidden flex items-center justify-center">
+              {urls[activeIdx] ? (
+                banner.type === 'image' ? (
+                  <img 
+                    src={urls[activeIdx]} 
+                    alt={`Static Banner-${activeIdx}`} 
+                    className="w-full h-full object-fill bg-black select-none" 
+                    referrerPolicy="no-referrer" 
+                  />
+                ) : (
+                  <video 
+                    src={urls[activeIdx]} 
+                    className="w-full h-full object-fill bg-black" 
+                    autoPlay 
+                    loop 
+                    playsInline 
+                    muted 
+                  />
+                )
+              ) : null}
+
+              {/* Pin Selection Widget overlay */}
+              {urls.length > 1 && setActiveIdx && (
+                <div className="absolute top-3 right-3 z-30 bg-black/75 backdrop-blur-md border border-white/10 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md">
+                  <span className="text-[9px] uppercase tracking-wider font-mono text-gray-400 font-bold hidden sm:inline select-none">Pin:</span>
+                  <div className="flex gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                    {urls.map((_: any, idx: number) => {
+                      const isSelected = idx === activeIdx;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveIdx(idx)}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                            isSelected 
+                              ? 'bg-brand-accent text-white scale-110 shadow-sm border border-brand-accent' 
+                              : 'bg-white/10 text-transparent border border-white/15 hover:bg-white/20'
+                          }`}
+                        >
+                          <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : selectedStyle === 'grid' ? (
+            /* Static images/videos side-by-side in a responsive flex layout with 3px black gap/line */
             <div className="w-full flex flex-wrap sm:flex-nowrap gap-[3px] bg-black">
               {urls.map((url, idx) => (
                 <div key={idx} className="flex-1 min-w-[150px] sm:min-w-0 h-[130px] sm:h-[180px] md:h-[240px] relative shrink-0 bg-black">
@@ -204,6 +261,8 @@ export default function Home({ config }: HomeProps) {
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [activeBanner1Idx, setActiveBanner1Idx] = useState(0);
+  const [activeBanner2Idx, setActiveBanner2Idx] = useState(0);
   const showIcons = true;
   
   const [dataStatus, setDataStatus] = useState({ 
@@ -335,7 +394,12 @@ export default function Home({ config }: HomeProps) {
       <Navbar onSearch={setSearchQuery} config={config} />
 
       {/* Banner Section (Top Banner) */}
-      {renderBanner(config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null))}
+      {renderBanner(
+        config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null),
+        false,
+        activeBanner1Idx,
+        setActiveBanner1Idx
+      )}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
       <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-gray-100 bg-opacity-95 transition-all duration-300">
@@ -389,7 +453,7 @@ export default function Home({ config }: HomeProps) {
       </section>
 
       {/* Banner Section 2 (Below Category Bar) */}
-      {renderBanner(config.banner2, true)}
+      {renderBanner(config.banner2, true, activeBanner2Idx, setActiveBanner2Idx)}
 
       {/* Main Product Feed */}
 
@@ -417,11 +481,11 @@ export default function Home({ config }: HomeProps) {
             ))}
           </div>
         ) : displayProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            {displayProducts.map((p) => (
-              <ProductCard key={p.id} product={p} onClick={setSelectedProduct} />
-            ))}
-          </div>
+          <ProductFeedLayouts 
+            layout={config.productLayout || 'standard_grid'}
+            products={displayProducts}
+            onProductClick={setSelectedProduct}
+          />
         ) : (
           <div className="text-center py-20 bg-gray-50 editorial-card mx-2">
             <h3 className="font-display text-2xl text-brand-muted">

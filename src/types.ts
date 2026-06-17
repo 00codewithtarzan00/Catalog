@@ -35,6 +35,7 @@ export interface BannerSetting {
   textColor?: string;
   textSize?: string;
   enableMarquee?: boolean;
+  style?: 'marquee' | 'spotlight' | 'grid';
   marqueeDirection?: 'ltr' | 'rtl';
   marqueeSpeed?: number;
 }
@@ -49,4 +50,5 @@ export interface StoreConfig {
   bannerUrl?: string;
   banner1?: BannerSetting;
   banner2?: BannerSetting;
+  productLayout?: 'standard_grid' | 'carousel' | 'coverflow' | 'hover_swap' | 'accordion' | 'static_showcase' | 'story_banner';
 }
