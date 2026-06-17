@@ -15,6 +15,47 @@ import {
 import { CATEGORIES } from "../../constants";
 import { compressImage } from "../../lib/utils";
 
+interface SettingsInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
+  value: string;
+  onChange: (val: string) => void;
+}
+
+const SettingsInput: React.FC<SettingsInputProps> = ({ value, onChange, ...props }) => {
+  const [localVal, setLocalVal] = useState(value);
+
+  useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localVal !== value) {
+        onChange(localVal);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [localVal, onChange, value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalVal(e.target.value);
+  };
+
+  const handleBlur = () => {
+    if (localVal !== value) {
+      onChange(localVal);
+    }
+  };
+
+  return (
+    <input
+      {...props}
+      value={localVal}
+      onChange={handleChange}
+      onBlur={handleBlur}
+    />
+  );
+};
+
 export default function SettingsManager() {
   const [config, setConfig] = useState<StoreConfig>({
     logoUrl: "",
@@ -166,9 +207,9 @@ export default function SettingsManager() {
         e.target.value = "";
       };
 
-      if (file.size > 1024 * 1024) {
-        // More than 1MB
-        compressImage(file)
+      if (file.type.startsWith("image/")) {
+        // Always compress images regardless of size to optimize Firestore space and speed
+        compressImage(file, 800, 800, 0.5)
           .then((compressedUrl) => {
             processResult(compressedUrl);
           })
@@ -184,6 +225,12 @@ export default function SettingsManager() {
             reader.readAsDataURL(file);
           });
       } else {
+        // For video files or other media, prevent crashing Firestore due to 1MB document size limit
+        if (file.size > 1024 * 1024) {
+          alert("Video files must be under 1MB to fit within Firestore limits.");
+          setUploading(null);
+          return;
+        }
         const reader = new FileReader();
         reader.onloadend = () => {
           processResult(reader.result as string);
@@ -253,12 +300,12 @@ export default function SettingsManager() {
 
                 <div className="flex-1 space-y-1">
                   <div className="flex gap-2">
-                    <input
+                    <SettingsInput
                       className="editorial-input h-10"
                       placeholder="Paste Link or Upload"
                       value={config.logoUrl || ""}
-                      onChange={(e) =>
-                        setConfig({ ...config, logoUrl: e.target.value })
+                      onChange={(val) =>
+                        setConfig({ ...config, logoUrl: val })
                       }
                     />
                     <button
@@ -305,12 +352,12 @@ export default function SettingsManager() {
 
                 <div className="flex-1 space-y-1">
                   <div className="flex gap-2">
-                    <input
+                    <SettingsInput
                       className="editorial-input h-10"
                       placeholder="Background Image URL"
                       value={config.heroImageUrl || ""}
-                      onChange={(e) =>
-                        setConfig({ ...config, heroImageUrl: e.target.value })
+                      onChange={(val) =>
+                        setConfig({ ...config, heroImageUrl: val })
                       }
                     />
                     <button
@@ -492,7 +539,7 @@ export default function SettingsManager() {
 
                                 <div className="flex-1 space-y-1">
                                   <div className="flex gap-2">
-                                    <input
+                                    <SettingsInput
                                       className="editorial-input h-8 text-[11px]"
                                       placeholder={
                                         config.banner1?.type === "image"
@@ -500,9 +547,9 @@ export default function SettingsManager() {
                                           : "Video direct URL (mp4)"
                                       }
                                       value={url || ""}
-                                      onChange={(e) => {
+                                      onChange={(val) => {
                                         const newUrls = [...items];
-                                        newUrls[idx] = e.target.value;
+                                        newUrls[idx] = val;
                                         setConfig({
                                           ...config,
                                           banner1: {
@@ -623,16 +670,16 @@ export default function SettingsManager() {
                         <label className="text-[9px] uppercase font-bold text-gray-400">
                           Banner Display Text (Optional/Marquee)
                         </label>
-                        <input
+                        <SettingsInput
                           className="editorial-input h-9 text-xs"
                           placeholder="Enter banner ticker or badge text..."
                           value={config.banner1?.text || ""}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             setConfig({
                               ...config,
                               banner1: {
                                 ...(config.banner1 || { type: "none" }),
-                                text: e.target.value,
+                                text: val,
                               },
                             })
                           }
@@ -645,16 +692,16 @@ export default function SettingsManager() {
                             <label className="text-[9px] uppercase font-bold text-gray-400">
                               Text Color
                             </label>
-                            <input
+                            <SettingsInput
                               type="color"
                               className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
                               value={config.banner1?.textColor || "#ffffff"}
-                              onChange={(e) =>
+                              onChange={(val) =>
                                 setConfig({
                                   ...config,
                                   banner1: {
                                     ...(config.banner1 || { type: "none" }),
-                                    textColor: e.target.value,
+                                    textColor: val,
                                   },
                                 })
                               }
@@ -825,16 +872,16 @@ export default function SettingsManager() {
                       <label className="text-[9px] uppercase font-bold text-gray-400">
                         BG Color
                       </label>
-                      <input
+                      <SettingsInput
                         type="color"
                         className="w-full h-8 rounded border border-brand-border cursor-pointer p-0.5 bg-white"
                         value={config.banner1?.bgColor || "#0047AB"}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setConfig({
                             ...config,
                             banner1: {
                               ...(config.banner1 || { type: "text" }),
-                              bgColor: e.target.value,
+                              bgColor: val,
                             },
                           })
                         }
@@ -844,16 +891,16 @@ export default function SettingsManager() {
                       <label className="text-[9px] uppercase font-bold text-gray-400">
                         Text Color
                       </label>
-                      <input
+                      <SettingsInput
                         type="color"
                         className="w-full h-8 rounded border border-brand-border cursor-pointer p-0.5 bg-white"
                         value={config.banner1?.textColor || "#ffffff"}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setConfig({
                             ...config,
                             banner1: {
                               ...(config.banner1 || { type: "text" }),
-                              textColor: e.target.value,
+                              textColor: val,
                             },
                           })
                         }
@@ -1015,7 +1062,7 @@ export default function SettingsManager() {
 
                                 <div className="flex-1 space-y-1">
                                   <div className="flex gap-2">
-                                    <input
+                                    <SettingsInput
                                       className="editorial-input h-8 text-[11px]"
                                       placeholder={
                                         config.banner2?.type === "image"
@@ -1023,9 +1070,9 @@ export default function SettingsManager() {
                                           : "Video direct URL (mp4)"
                                       }
                                       value={url || ""}
-                                      onChange={(e) => {
+                                      onChange={(val) => {
                                         const newUrls = [...items];
-                                        newUrls[idx] = e.target.value;
+                                        newUrls[idx] = val;
                                         setConfig({
                                           ...config,
                                           banner2: {
@@ -1146,16 +1193,16 @@ export default function SettingsManager() {
                         <label className="text-[9px] uppercase font-bold text-gray-400">
                           Banner Display Text (Optional/Marquee)
                         </label>
-                        <input
+                        <SettingsInput
                           className="editorial-input h-9 text-xs"
                           placeholder="Enter banner ticker or badge text..."
                           value={config.banner2?.text || ""}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             setConfig({
                               ...config,
                               banner2: {
                                 ...(config.banner2 || { type: "none" }),
-                                text: e.target.value,
+                                text: val,
                               },
                             })
                           }
@@ -1168,16 +1215,16 @@ export default function SettingsManager() {
                             <label className="text-[9px] uppercase font-bold text-gray-450">
                               Text Color
                             </label>
-                            <input
+                            <SettingsInput
                               type="color"
                               className="w-full h-9 rounded border border-brand-border cursor-pointer p-0.5 bg-white shrink-0"
                               value={config.banner2?.textColor || "#ffffff"}
-                              onChange={(e) =>
+                              onChange={(val) =>
                                 setConfig({
                                   ...config,
                                   banner2: {
                                     ...(config.banner2 || { type: "none" }),
-                                    textColor: e.target.value,
+                                    textColor: val,
                                   },
                                 })
                               }
@@ -1348,16 +1395,16 @@ export default function SettingsManager() {
                       <label className="text-[9px] uppercase font-bold text-gray-400">
                         BG Color
                       </label>
-                      <input
+                      <SettingsInput
                         type="color"
                         className="w-full h-8 rounded border border-brand-border cursor-pointer p-0.5 bg-white"
                         value={config.banner2?.bgColor || "#0047AB"}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setConfig({
                             ...config,
                             banner2: {
                               ...(config.banner2 || { type: "text" }),
-                              bgColor: e.target.value,
+                              bgColor: val,
                             },
                           })
                         }
@@ -1367,16 +1414,16 @@ export default function SettingsManager() {
                       <label className="text-[9px] uppercase font-bold text-gray-400">
                         Text Color
                       </label>
-                      <input
+                      <SettingsInput
                         type="color"
                         className="w-full h-8 rounded border border-brand-border cursor-pointer p-0.5 bg-white"
                         value={config.banner2?.textColor || "#ffffff"}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setConfig({
                             ...config,
                             banner2: {
                               ...(config.banner2 || { type: "text" }),
-                              textColor: e.target.value,
+                              textColor: val,
                             },
                           })
                         }

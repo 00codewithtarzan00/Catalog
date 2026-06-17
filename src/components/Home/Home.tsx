@@ -179,9 +179,9 @@ const renderBanner = (
                 </button>
               )}
 
-              {/* Indicator dots centered at the bottom of the banner */}
+              {/* Indicator dots at the bottom right corner of the banner */}
               {urls.length > 1 && setActiveIdx && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm">
+                <div className="absolute bottom-3 right-3 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm">
                   {urls.map((_: any, idx: number) => {
                     const isSelected = idx === activeIdx;
                     return (

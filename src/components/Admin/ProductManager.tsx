@@ -25,8 +25,9 @@ export default function ProductManager() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 1024) { // More than 1MB
-        compressImage(file)
+      if (file.type.startsWith("image/")) {
+        // Always compress images regardless of size to optimize storage and speed (800x800, quality 0.5)
+        compressImage(file, 800, 800, 0.5)
           .then(compressedUrl => {
             setCurrentProduct(prev => ({ ...prev, imageUrl: compressedUrl }));
           })
