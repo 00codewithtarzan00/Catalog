@@ -181,7 +181,10 @@ const renderBanner = (
 
               {/* Indicator dots at the bottom right corner of the banner */}
               {urls.length > 1 && setActiveIdx && (
-                <div className="absolute bottom-3 right-3 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm">
+                <div 
+                  style={{ left: 'auto', right: '12px' }}
+                  className="absolute bottom-3 right-3 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm"
+                >
                   {urls.map((_: any, idx: number) => {
                     const isSelected = idx === activeIdx;
                     return (
