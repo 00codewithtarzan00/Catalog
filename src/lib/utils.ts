@@ -62,26 +62,44 @@ export function compressImage(file: File, maxW = 1000, maxH = 1000, quality = 0.
           return;
         }
 
-        // For non-PNGs, fill background with white to avoid black backgrounds on JPEG compression
         const isPng = file.type === 'image/png' || file.name?.endsWith('.png');
         
         if (!isPng) {
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-          resolve(compressedBase64);
-        } else {
-          // PNG supports transparency. WebP supports transparency & is up to 80% lighter than PNG.
-          ctx.drawImage(img, 0, 0, width, height);
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try AVIF first
+        try {
+          // Adjust quality slightly upscale for AVIF to ensure extremely crisp image quality with low file size
+          const avifQuality = Math.max(quality, 0.80);
+          const avifBase64 = canvas.toDataURL('image/avif', avifQuality);
+          if (avifBase64.startsWith('data:image/avif')) {
+            resolve(avifBase64);
+            return;
+          }
+        } catch (e) {
+          console.warn('AVIF canvas export not supported by current browser environment, falling back.', e);
+        }
+
+        // Try WebP second (modern with transparency support)
+        try {
           const webpBase64 = canvas.toDataURL('image/webp', quality);
           if (webpBase64.startsWith('data:image/webp')) {
             resolve(webpBase64);
-          } else {
-            // Graceful fallback to standard PNG if webp is not supported by the client canvas context
-            const pngBase64 = canvas.toDataURL('image/png');
-            resolve(pngBase64);
+            return;
           }
+        } catch (e) {
+          console.warn('WebP export not supported, falling back.', e);
+        }
+
+        // Fallback to legacy formats
+        if (isPng) {
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          resolve(canvas.toDataURL('image/jpeg', quality));
         }
       };
       img.onerror = (err) => {
@@ -132,18 +150,38 @@ export function compressBase64Image(base64Str: string, maxW = 600, maxH = 600, q
       if (!isPng) {
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedBase64);
-      } else {
-        ctx.drawImage(img, 0, 0, width, height);
+      }
+      
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Try AVIF first
+      try {
+        const avifQuality = Math.max(quality, 0.80);
+        const avifBase64 = canvas.toDataURL('image/avif', avifQuality);
+        if (avifBase64.startsWith('data:image/avif')) {
+          resolve(avifBase64);
+          return;
+        }
+      } catch (e) {
+        console.warn('AVIF canvas export not supported by current browser environment, falling back.', e);
+      }
+
+      // Try WebP second
+      try {
         const webpBase64 = canvas.toDataURL('image/webp', quality);
         if (webpBase64.startsWith('data:image/webp')) {
           resolve(webpBase64);
-        } else {
-          const pngBase64 = canvas.toDataURL('image/png');
-          resolve(pngBase64);
+          return;
         }
+      } catch (e) {
+        console.warn('WebP export not supported, falling back.', e);
+      }
+
+      // Standard fallback
+      if (isPng) {
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        resolve(canvas.toDataURL('image/jpeg', quality));
       }
     };
     img.onerror = (err) => {
