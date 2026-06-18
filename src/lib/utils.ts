@@ -30,7 +30,7 @@ export function formatQuantityUnit(unit: string | undefined | null): string {
   }
 }
 
-export function compressImage(file: File, maxW = 300, maxH = 300, quality = 0.75): Promise<string> {
+export function compressImage(file: File, maxW = 1000, maxH = 1000, quality = 0.7): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
