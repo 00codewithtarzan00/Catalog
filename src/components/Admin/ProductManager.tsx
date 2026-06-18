@@ -26,8 +26,8 @@ export default function ProductManager() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.type.startsWith("image/")) {
-        // Always compress images regardless of size to optimize storage and speed (800x800, quality 0.5)
-        compressImage(file, 800, 800, 0.5)
+        // Always compress images to 300x300 resolution and tiny file size while maintaining pristine quality
+        compressImage(file, 300, 300, 0.75)
           .then(compressedUrl => {
             setCurrentProduct(prev => ({ ...prev, imageUrl: compressedUrl }));
           })

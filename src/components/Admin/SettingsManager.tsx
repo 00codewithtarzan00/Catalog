@@ -208,8 +208,8 @@ export default function SettingsManager() {
       };
 
       if (file.type.startsWith("image/")) {
-        // Always compress images regardless of size to optimize Firestore space and speed
-        compressImage(file, 800, 800, 0.5)
+        // Enforce 300x300 resolution with excellent compression to minimize file size and maximize speed
+        compressImage(file, 300, 300, 0.75)
           .then((compressedUrl) => {
             processResult(compressedUrl);
           })
