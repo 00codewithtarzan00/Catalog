@@ -618,23 +618,23 @@ export default function Home({ config }: HomeProps) {
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
           />
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative bg-white w-full max-w-2xl editorial-card overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+            className="relative bg-white w-full max-w-4xl editorial-card overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
           >
             <button 
               onClick={() => setSelectedProduct(null)}
-              className="absolute top-4 right-4 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
+              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white text-gray-800 transition-all duration-200"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
 
-            <div className="w-full md:w-[280px] lg:w-[320px] h-[220px] md:h-[280px] lg:h-[320px] bg-gray-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border overflow-hidden">
+            <div className="w-full md:w-[420px] lg:w-[460px] h-[300px] md:h-[440px] bg-slate-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border overflow-hidden relative">
               {selectedProduct.imageUrl ? (
                 <img 
                   src={selectedProduct.imageUrl} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-contain p-4 transition-all duration-300 hover:scale-105"
+                  className="w-full h-full object-contain p-6 transition-all duration-300 hover:scale-110"
                   referrerPolicy="no-referrer"
                 />
               ) : (

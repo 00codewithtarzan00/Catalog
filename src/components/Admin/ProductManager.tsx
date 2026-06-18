@@ -12,6 +12,7 @@ export default function ProductManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [compressionStats, setCompressionStats] = useState<{ originalSize: string; compressedSize: string; ratio: string } | null>(null);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -25,16 +26,25 @@ export default function ProductManager() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const originalSizeKB = file.size / 1024;
       if (file.type.startsWith("image/")) {
-        // Always compress images regardless of size to optimize storage and speed (800x800, quality 0.5)
-        compressImage(file, 800, 800, 0.5)
+        // Premium High-Definition Optimization: Limit to 1200x1200px at 0.82 quality to ensure absolutely crisp details (sharp zoomed views) with tiny data sizes
+        compressImage(file, 1200, 1200, 0.82)
           .then(compressedUrl => {
             setCurrentProduct(prev => ({ ...prev, imageUrl: compressedUrl }));
+            const compressedSizeKB = (compressedUrl.length * 0.75) / 1024;
+            const savingsPercent = Math.max(0, Math.round((1 - (compressedSizeKB / originalSizeKB)) * 100));
+            setCompressionStats({
+              originalSize: originalSizeKB < 1024 ? `${originalSizeKB.toFixed(1)} KB` : `${(originalSizeKB/1024).toFixed(2)} MB`,
+              compressedSize: `${compressedSizeKB.toFixed(1)} KB`,
+              ratio: `${savingsPercent}%`
+            });
           })
           .catch(() => {
             const reader = new FileReader();
             reader.onloadend = () => {
               setCurrentProduct(prev => ({ ...prev, imageUrl: reader.result as string }));
+              setCompressionStats(null);
             };
             reader.readAsDataURL(file);
           });
@@ -42,6 +52,7 @@ export default function ProductManager() {
         const reader = new FileReader();
         reader.onloadend = () => {
           setCurrentProduct(prev => ({ ...prev, imageUrl: reader.result as string }));
+          setCompressionStats(null);
         };
         reader.readAsDataURL(file);
       }
@@ -107,6 +118,7 @@ export default function ProductManager() {
           <button
             onClick={() => {
               setCurrentProduct({ available: true, imageUrl: '', showQuantity: true });
+              setCompressionStats(null);
               setIsEditing(true);
             }}
             className="editorial-btn-primary flex items-center gap-2 whitespace-nowrap"
@@ -198,6 +210,7 @@ export default function ProductManager() {
                 <button
                   onClick={() => {
                     setCurrentProduct(p);
+                    setCompressionStats(null);
                     setIsEditing(true);
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-100 rounded-md text-brand-muted transition-colors border border-brand-border text-[10px] font-bold uppercase"
@@ -402,6 +415,12 @@ export default function ProductManager() {
                     {currentProduct?.imageUrl ? <img src={currentProduct.imageUrl} className="w-full h-full object-cover" /> : <ImageIcon className="w-4 h-4 text-gray-400" />}
                   </div>
                 </div>
+                {compressionStats && (
+                  <p className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100/80 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 mt-1 font-mono tracking-tight animate-fade-in">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Auto-Optimized: <strong>{compressionStats.ratio} smaller</strong> ({compressionStats.originalSize} → {compressionStats.compressedSize})
+                  </p>
+                )}
               </div>
             </div>
 
