@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, d
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product } from '../../types';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
-import { formatPrice, formatQuantityUnit, compressImage } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, compressImage, compressImageToAvif } from '../../lib/utils';
 import { CATEGORIES } from '../../constants';
 
 export default function ProductManager() {
@@ -12,7 +12,7 @@ export default function ProductManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [compressionStats, setCompressionStats] = useState<{ originalSize: string; compressedSize: string; ratio: string } | null>(null);
+  const [compressionStats, setCompressionStats] = useState<{ originalSize: string; compressedSize: string; ratio: string; format?: string } | null>(null);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -26,18 +26,16 @@ export default function ProductManager() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const originalSizeKB = file.size / 1024;
       if (file.type.startsWith("image/")) {
-        // Premium High-Definition Optimization: Limit to 1200x1200px at 0.82 quality to ensure absolutely crisp details (sharp zoomed views) with tiny data sizes
-        compressImage(file, 1200, 1200, 0.82)
-          .then(compressedUrl => {
-            setCurrentProduct(prev => ({ ...prev, imageUrl: compressedUrl }));
-            const compressedSizeKB = (compressedUrl.length * 0.75) / 1024;
-            const savingsPercent = Math.max(0, Math.round((1 - (compressedSizeKB / originalSizeKB)) * 100));
+        // High-performance AVIF compression: automatic 600x600 px limit at 0.65 quality for ultra-speed loading without human-visible quality loss
+        compressImageToAvif(file, 600, 600, 0.65)
+          .then(result => {
+            setCurrentProduct(prev => ({ ...prev, imageUrl: result.dataUrl }));
             setCompressionStats({
-              originalSize: originalSizeKB < 1024 ? `${originalSizeKB.toFixed(1)} KB` : `${(originalSizeKB/1024).toFixed(2)} MB`,
-              compressedSize: `${compressedSizeKB.toFixed(1)} KB`,
-              ratio: `${savingsPercent}%`
+              originalSize: result.originalSizeKb < 1024 ? `${result.originalSizeKb.toFixed(1)} KB` : `${(result.originalSizeKb / 1024).toFixed(2)} MB`,
+              compressedSize: `${result.compressedSizeKb.toFixed(1)} KB`,
+              ratio: `${result.savingsPercent}%`,
+              format: result.format
             });
           })
           .catch(() => {
@@ -418,7 +416,7 @@ export default function ProductManager() {
                 {compressionStats && (
                   <p className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100/80 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 mt-1 font-mono tracking-tight animate-fade-in">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Auto-Optimized: <strong>{compressionStats.ratio} smaller</strong> ({compressionStats.originalSize} → {compressionStats.compressedSize})
+                    Auto-Optimized ({compressionStats.format?.toUpperCase()}): <strong>{compressionStats.ratio} smaller</strong> ({compressionStats.originalSize} → {compressionStats.compressedSize})
                   </p>
                 )}
               </div>

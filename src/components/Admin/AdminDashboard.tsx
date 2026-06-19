@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Settings, LogOut, Bell } from 'lucide-react';
+import { Package, Settings, LogOut, Bell, Image as ImageIcon } from 'lucide-react';
 import ProductManager from './ProductManager';
 import SettingsManager from './SettingsManager';
 import NoticeManager from './NoticeManager';
+import AvifManager from './AvifManager';
 import Navbar from '../Home/Navbar';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -14,7 +15,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'inventory' | 'settings' | 'notices'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'settings' | 'notices' | 'avif'>('inventory');
   const [config, setConfig] = useState<StoreConfig>({});
   const navigate = useNavigate();
 
@@ -40,6 +41,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             {activeTab === 'inventory' && <ProductManager />}
             {activeTab === 'notices' && <NoticeManager />}
             {activeTab === 'settings' && <SettingsManager />}
+            {activeTab === 'avif' && <AvifManager />}
           </div>
         </main>
 
@@ -67,6 +69,14 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           >
             <Settings className="w-5 h-5" />
             <span className="text-[10px] font-bold uppercase tracking-tighter">Settings</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('avif')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'avif' ? 'bg-white text-brand-accent' : 'text-white/70'}`}
+          >
+            <ImageIcon className="w-5 h-5" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">AVIF Opt</span>
           </button>
 
           <button

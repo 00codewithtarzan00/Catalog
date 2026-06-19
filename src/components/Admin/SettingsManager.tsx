@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { doc, setDoc, onSnapshot, collection, getDocs, updateDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../../firebase";
 import { StoreConfig } from "../../types";
 import {
@@ -11,12 +11,9 @@ import {
   ChevronUp,
   Video,
   Check,
-  Zap,
-  AlertTriangle,
-  RefreshCw,
 } from "lucide-react";
 import { CATEGORIES } from "../../constants";
-import { compressImage, compressBase64Image } from "../../lib/utils";
+import { compressImage, compressImageToAvif } from "../../lib/utils";
 
 interface SettingsInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
   value: string;
@@ -120,244 +117,7 @@ export default function SettingsManager() {
   }, []);
 
   const [uploading, setUploading] = useState<string | null>(null);
-  const [compressionStats, setCompressionStats] = useState<Record<string, { originalSize: string; compressedSize: string; ratio: string }>>({});
-
-  // Database Optimizer States
-  const [dbProducts, setDbProducts] = useState<any[]>([]);
-  const [scannedItems, setScannedItems] = useState<{
-    id: string;
-    name: string;
-    type: "setting" | "product";
-    sizeKB: number;
-    rawStr: string;
-    meta?: any;
-  }[]>([]);
-  const [scanStatus, setScanStatus] = useState<"idle" | "scanning" | "done" | "optimizing" | "success">("idle");
-  const [optimizerProgress, setOptimizerProgress] = useState(0);
-  const [optimizedLog, setOptimizedLog] = useState<{ name: string; oldSize: string; newSize: string }[]>([]);
-  const [savingsText, setSavingsText] = useState("");
-
-  const scanDatabaseImages = async () => {
-    setScanStatus("scanning");
-    try {
-      const items: any[] = [];
-
-      // 1. Check StoreConfig logoUrl
-      if (config.logoUrl && config.logoUrl.startsWith("data:image/")) {
-        const size = (config.logoUrl.length * 0.75) / 1024;
-        if (size > 50) {
-          items.push({ id: "logoUrl", name: "Store Logo (लोगो)", type: "setting", sizeKB: size, rawStr: config.logoUrl });
-        }
-      }
-
-      // 2. Check StoreConfig heroImageUrl
-      if (config.heroImageUrl && config.heroImageUrl.startsWith("data:image/")) {
-        const size = (config.heroImageUrl.length * 0.75) / 1024;
-        if (size > 80) {
-          items.push({ id: "heroImageUrl", name: "Hero Background (मुख्य बैनर)", type: "setting", sizeKB: size, rawStr: config.heroImageUrl });
-        }
-      }
-
-      // 3. Check StoreConfig categoryImages
-      if (config.categoryImages) {
-        Object.entries(config.categoryImages).forEach(([catName, imgUrl]) => {
-          if (imgUrl && imgUrl.startsWith("data:image/")) {
-            const size = (imgUrl.length * 0.75) / 1024;
-            if (size > 60) {
-              items.push({ 
-                id: `category-${catName}`, 
-                name: `Category: ${catName} (श्रेणी चित्र)`, 
-                type: "setting", 
-                sizeKB: size, 
-                rawStr: imgUrl,
-                meta: { catName }
-              });
-            }
-          }
-        });
-      }
-
-      // 4. Check StoreConfig banner1.urls
-      if (config.banner1?.urls) {
-        config.banner1.urls.forEach((url, idx) => {
-          if (url && url.startsWith("data:image/")) {
-            const size = (url.length * 0.75) / 1024;
-            if (size > 80) {
-              items.push({
-                id: `banner1-${idx}`,
-                name: `Banner 1: Slider Image #${idx + 1} (प्रथम बैनर)`,
-                type: "setting",
-                sizeKB: size,
-                rawStr: url,
-                meta: { bannerIdx: idx }
-              });
-            }
-          }
-        });
-      }
-
-      // 5. Check StoreConfig banner2.urls
-      if (config.banner2?.urls) {
-        config.banner2.urls.forEach((url, idx) => {
-          if (url && url.startsWith("data:image/")) {
-            const size = (url.length * 0.75) / 1024;
-            if (size > 80) {
-              items.push({
-                id: `banner2-${idx}`,
-                name: `Banner 2: Slider Image #${idx + 1} (द्वितीय बैनर)`,
-                type: "setting",
-                sizeKB: size,
-                rawStr: url,
-                meta: { bannerIdx: idx }
-              });
-            }
-          }
-        });
-      }
-
-      // 6. Fetch products from db and scan
-      const prodSnap = await getDocs(collection(db, "products"));
-      const prodsList = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setDbProducts(prodsList);
-
-      prodsList.forEach((prod) => {
-        if (prod.imageUrl && prod.imageUrl.startsWith("data:image/")) {
-          const size = (prod.imageUrl.length * 0.75) / 1024;
-          if (size > 80) {
-            items.push({
-              id: `product-${prod.id}`,
-              name: `Product: ${prod.name} (उत्पाद चित्र)`,
-              type: "product",
-              sizeKB: size,
-              rawStr: prod.imageUrl,
-              meta: { prodId: prod.id, prodData: prod }
-            });
-          }
-        }
-      });
-
-      setScannedItems(items);
-      setScanStatus("done");
-    } catch (err) {
-      console.error("Database scan failed:", err);
-      setScanStatus("idle");
-    }
-  };
-
-  // Run automatically when config has loaded
-  useEffect(() => {
-    if (config.logoUrl || config.heroImageUrl) {
-      scanDatabaseImages();
-    }
-  }, [config.logoUrl, config.heroImageUrl]);
-
-  const optimizeDatabaseImages = async () => {
-    if (scannedItems.length === 0) return;
-    setScanStatus("optimizing");
-    setOptimizerProgress(0);
-    const logs: typeof optimizedLog = [];
-    let originalTotalSize = 0;
-    let compressedTotalSize = 0;
-
-    // Create mutable copy of current StoreConfig for consecutive updates
-    let updatedConfig = { ...config };
-
-    for (let i = 0; i < scannedItems.length; i++) {
-      const item = scannedItems[i];
-      originalTotalSize += item.sizeKB;
-      try {
-        // Determine contextual limits to preserve absolute crisp detail & resolution
-        let maxW = 1200;
-        let maxH = 1200;
-        let qual = 0.82;
-        if (item.id === "logoUrl") {
-          maxW = 500;
-          maxH = 500;
-          qual = 0.90;
-        } else if (item.id === "heroImageUrl" || item.id.startsWith("banner1-") || item.id.startsWith("banner2-")) {
-          maxW = 1600;
-          maxH = 700;
-          qual = 0.85;
-        } else if (item.id.startsWith("category-")) {
-          maxW = 600;
-          maxH = 600;
-          qual = 0.85;
-        }
-
-        const compressedUrl = await compressBase64Image(item.rawStr, maxW, maxH, qual);
-        const newSizeKB = (compressedUrl.length * 0.75) / 1024;
-        compressedTotalSize += newSizeKB;
-
-        logs.push({
-          name: item.name,
-          oldSize: `${item.sizeKB.toFixed(1)} KB`,
-          newSize: `${newSizeKB.toFixed(1)} KB`,
-        });
-
-        if (item.type === "setting") {
-          if (item.id === "logoUrl") {
-            updatedConfig.logoUrl = compressedUrl;
-          } else if (item.id === "heroImageUrl") {
-            updatedConfig.heroImageUrl = compressedUrl;
-          } else if (item.id.startsWith("category-")) {
-            const catName = item.meta.catName;
-            updatedConfig.categoryImages = {
-              ...(updatedConfig.categoryImages || {}),
-              [catName]: compressedUrl,
-            };
-          } else if (item.id.startsWith("banner1-")) {
-            const idx = item.meta.bannerIdx;
-            if (updatedConfig.banner1?.urls) {
-              const updatedUrls = [...updatedConfig.banner1.urls];
-              updatedUrls[idx] = compressedUrl;
-              updatedConfig.banner1 = {
-                ...updatedConfig.banner1,
-                urls: updatedUrls,
-              };
-            }
-          } else if (item.id.startsWith("banner2-")) {
-            const idx = item.meta.bannerIdx;
-            if (updatedConfig.banner2?.urls) {
-              const updatedUrls = [...updatedConfig.banner2.urls];
-              updatedUrls[idx] = compressedUrl;
-              updatedConfig.banner2 = {
-                ...updatedConfig.banner2,
-                urls: updatedUrls,
-              };
-            }
-          }
-        } else if (item.type === "product") {
-          const prodId = item.meta.prodId;
-          const prodData = item.meta.prodData;
-          await updateDoc(doc(db, "products", prodId), {
-            ...prodData,
-            imageUrl: compressedUrl
-          });
-        }
-      } catch (err) {
-        console.error(`Optimization failed for ${item.name}:`, err);
-        compressedTotalSize += item.sizeKB;
-      }
-
-      setOptimizerProgress(Math.round(((i + 1) / scannedItems.length) * 100));
-      await new Promise((resolve) => setTimeout(resolve, 60));
-    }
-
-    // Save final optimized config to settings collection
-    try {
-      await setDoc(doc(db, "config", "global"), updatedConfig);
-      setConfig(updatedConfig);
-    } catch (err) {
-      console.error("Failed to save final optimized settings config:", err);
-    }
-
-    const savedMB = ((originalTotalSize - compressedTotalSize) / 1024).toFixed(2);
-    const savingsPercent = Math.round((1 - (compressedTotalSize / originalTotalSize)) * 100);
-    setSavingsText(`Successfully saved ${savedMB} MB of database space! Settings edits will now save instantly.`);
-    setOptimizedLog(logs);
-    setScanStatus("success");
-    setScannedItems([]);
-  };
+  const [compressionStats, setCompressionStats] = useState<Record<string, { originalSize: string; compressedSize: string; ratio: string; format?: string }>>({});
 
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -451,36 +211,35 @@ export default function SettingsManager() {
       };
 
       if (file.type.startsWith("image/")) {
-        // Dynamic adaptive compression rule based on upload context - Upgraded for Premium High-Definition Quality
-        let maxW = 1200;
-        let maxH = 1200;
-        let quality = 0.85;
+        // Dynamic adaptive compression rule based on upload context
+        let maxW = 600;
+        let maxH = 600;
+        let quality = 0.65;
 
         if (field === "logoUrl") {
-          maxW = 500;
-          maxH = 500;
-          quality = 0.90; // Extremely high quality for crisp details on critical branding elements
+          maxW = 240;
+          maxH = 240;
+          quality = 0.75; // high quality for crisp details on critical identity elements
         } else if (field === "heroImageUrl" || field === "banner1" || field === "banner2") {
-          maxW = 1600;
-          maxH = 700;
-          quality = 0.85; // Wider widescreen dimensions for banner slides to look perfect on Retina & 4K displays
+          maxW = 1200;
+          maxH = 500;
+          quality = 0.65; // wider bounds for banners to look perfect on desktop, compressed heavily for page speed
         } else if (isCategory) {
-          maxW = 600;
-          maxH = 600;
-          quality = 0.85; // Beautifully optimized high-resolution thumbnail images for category navigation
+          maxW = 400;
+          maxH = 400;
+          quality = 0.65; // optimized round avatars/cards/thumbnails
         }
 
-        compressImage(file, maxW, maxH, quality)
-          .then((compressedUrl) => {
-            processResult(compressedUrl);
-            const compressedSizeKB = (compressedUrl.length * 0.75) / 1024;
-            const savingsPercent = Math.max(0, Math.round((1 - (compressedSizeKB / originalSizeKB)) * 100));
+        compressImageToAvif(file, maxW, maxH, quality)
+          .then((result) => {
+            processResult(result.dataUrl);
             setCompressionStats((prev) => ({
               ...prev,
               [uploadKey]: {
                 originalSize: originalSizeKB < 1024 ? `${originalSizeKB.toFixed(1)} KB` : `${(originalSizeKB/1024).toFixed(2)} MB`,
-                compressedSize: `${compressedSizeKB.toFixed(1)} KB`,
-                ratio: `${savingsPercent}%`,
+                compressedSize: `${result.compressedSizeKb.toFixed(1)} KB`,
+                ratio: `${result.savingsPercent}%`,
+                format: result.format,
               },
             }));
           })
@@ -551,129 +310,6 @@ export default function SettingsManager() {
         </p>
       </header>
 
-      {/* ⚠️ Database Speed & Image Optimizer Panel */}
-      <div className="mb-8 bg-slate-50 border border-slate-200 rounded-xl p-6 max-w-2xl animate-fade-in shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
-            <Zap className="w-6 h-6 animate-pulse" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold font-display text-slate-900 flex items-center gap-2">
-              डेटाबेस स्पीड और इमेज ऑप्टिमाइज़र (Database Optimizer)
-            </h2>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              पुराने भारी और बिना कंप्रेस किए हुए चित्र वेबसाइट को लोड होने में बहुत अधिक समय लगवाते हैं और सेटिंग्स को सेव/अपडेट होने में बहुत धीमा कर देते हैं। इस यूटिलिटी की मदद से आप उन्हें एक क्लिक में ऑटो-ऑप्टिमाइज़ कर सकते हैं!
-            </p>
-
-            {scanStatus === "scanning" && (
-              <div className="mt-4 flex items-center gap-3 text-sm text-slate-500 font-medium">
-                <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" />
-                <span>डेटाबेस इमेज स्कैन की जा रही हैं... (Scanning database...)</span>
-              </div>
-            )}
-
-            {scanStatus === "done" && (
-              <div className="mt-4 space-y-3">
-                {scannedItems.length === 0 ? (
-                  <div className="bg-emerald-50 border border-emerald-100 p-3.5 rounded-lg flex items-center gap-2.5 text-emerald-800 text-xs font-medium">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span>✨ बेहतरीन! कोई भारी इमेज नहीं मिली। आपका डेटाबेस पूरी तरह से ऑप्टिमाइज़्ड और सुपर-फ़ास्ट है!</span>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="bg-amber-50 border border-amber-100 p-3.5 rounded-lg flex items-start gap-3 text-amber-800 text-xs">
-                      <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
-                      <div>
-                        <p className="font-bold">
-                          {scannedItems.length} भारी / अनकंप्रेस्ड इमेज मिलीं! (Heavy images detected)
-                        </p>
-                        <p className="mt-1 opacity-90">
-                          कुल आकार: <strong>{(scannedItems.reduce((acc, curr) => acc + curr.sizeKB, 0) / 1024).toFixed(2)} MB</strong>. 
-                          ये इमेज आपके सेटिंग मैनेजर को धीमा कर रही हैं। कृपया नीचे बटन दबाकर इन्हें ऑप्टिमाइज़ करें:
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Expandable list of heavy items */}
-                    <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg bg-white p-2.5 space-y-1.5 divide-y divide-slate-100">
-                      {scannedItems.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between text-[11px] text-slate-600 pt-1.5 first:pt-0">
-                          <span className="font-mono truncate max-w-[70%]">{item.name}</span>
-                          <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold font-mono">
-                            {item.sizeKB < 1024 ? `${item.sizeKB.toFixed(1)} KB` : `${(item.sizeKB / 1024).toFixed(1)} MB`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={optimizeDatabaseImages}
-                      className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2.5 rounded-md shadow-sm transition"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      अभी ऑटो-ऑप्टिमाइज़ और कंप्रेस करें (Optimize & Compress Now)
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {scanStatus === "optimizing" && (
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs font-bold text-slate-700 font-mono">
-                  <span>इमेज कंप्रेशन जारी है... (Compressing in progress)</span>
-                  <span>{optimizerProgress}%</span>
-                </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-indigo-600 h-full transition-all duration-300 rounded-full" 
-                    style={{ width: `${optimizerProgress}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-slate-400 italic">
-                  डेटाबेस को अपडेट किया जा रहा है, कृपया ब्राउज़र बंद न करें...
-                </p>
-              </div>
-            )}
-
-            {scanStatus === "success" && (
-              <div className="mt-4 space-y-3">
-                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-lg text-emerald-800 text-xs space-y-2">
-                  <p className="font-bold flex items-center gap-2 text-sm">
-                    <span className="flex items-center justify-center w-5 h-5 bg-emerald-500 text-white rounded-full text-[10px]">✓</span>
-                    इमेज ऑप्टिमाइज़ेशन सफलतापूर्वक पूरा हुआ! (Successfully Completed!)
-                  </p>
-                  <p>{savingsText}</p>
-                </div>
-
-                <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg bg-white p-2.5 space-y-1 text-[10px] text-slate-500 font-mono divide-y divide-slate-100">
-                  <div className="font-bold text-slate-700 pb-1 flex justify-between">
-                    <span>आइटम का नाम</span>
-                    <span>आकार बदलाव (Size Saved)</span>
-                  </div>
-                  {optimizedLog.map((log, idx) => (
-                    <div key={idx} className="flex justify-between py-1">
-                      <span className="truncate max-w-[60%]">{log.name}</span>
-                      <span>{log.oldSize} → <strong className="text-emerald-600">{log.newSize}</strong></span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={scanDatabaseImages}
-                  className="inline-flex items-center gap-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs px-3.5 py-2 rounded font-medium transition"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  फिर से स्कैन करें (Scan Again)
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       <form
         onSubmit={handleSave}
         className="bg-white editorial-card overflow-hidden max-w-2xl"
@@ -736,7 +372,7 @@ export default function SettingsManager() {
                   {compressionStats["logoUrl"] && (
                     <p className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100/80 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 mt-1 font-mono tracking-tight animate-fade-in w-fit">
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Auto-Optimized: <strong>{compressionStats["logoUrl"].ratio} smaller</strong> ({compressionStats["logoUrl"].originalSize} → {compressionStats["logoUrl"].compressedSize})
+                      Auto-Optimized ({compressionStats["logoUrl"].format?.toUpperCase()}): <strong>{compressionStats["logoUrl"].ratio} smaller</strong> ({compressionStats["logoUrl"].originalSize} → {compressionStats["logoUrl"].compressedSize})
                     </p>
                   )}
                 </div>
@@ -794,7 +430,7 @@ export default function SettingsManager() {
                   {compressionStats["heroImageUrl"] && (
                     <p className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100/80 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 mt-1 font-mono tracking-tight animate-fade-in w-fit">
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Auto-Optimized: <strong>{compressionStats["heroImageUrl"].ratio} smaller</strong> ({compressionStats["heroImageUrl"].originalSize} → {compressionStats["heroImageUrl"].compressedSize})
+                      Auto-Optimized ({compressionStats["heroImageUrl"].format?.toUpperCase()}): <strong>{compressionStats["heroImageUrl"].ratio} smaller</strong> ({compressionStats["heroImageUrl"].originalSize} → {compressionStats["heroImageUrl"].compressedSize})
                     </p>
                   )}
                   <p className="text-[10px] text-brand-muted italic leading-none">

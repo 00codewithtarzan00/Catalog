@@ -49,60 +49,18 @@ const getTextSizeClasses = (size: string | undefined, isTextBanner: boolean = fa
   }
 };
 
-const BannerWrapper = ({
-  banner, 
-  isBanner2 = false, 
-  activeIdx = 0, 
-  setActiveIdx
-}: {
-  banner: any;
-  isBanner2?: boolean;
-  activeIdx?: number;
-  setActiveIdx?: (idx: number) => void;
-}) => {
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-
-  const bannerType = banner?.type;
-  const urls = banner?.urls && banner.urls.length > 0 
-    ? banner.urls.filter(Boolean) 
-    : (banner?.url ? [banner.url] : []);
-
-  const firstImageUrl = urls[0];
-
-  useEffect(() => {
-    if (!firstImageUrl || (bannerType !== 'image' && bannerType !== 'video')) {
-      setAspectRatio(null);
-      return;
-    }
-    
-    if (bannerType === 'image') {
-      const img = new Image();
-      img.src = firstImageUrl;
-      img.onload = () => {
-        if (img.naturalWidth && img.naturalHeight) {
-          const ar = img.naturalWidth / img.naturalHeight;
-          setAspectRatio(ar);
-        }
-      };
-      img.onerror = () => {
-        setAspectRatio(21 / 7);
-      };
-    } else if (bannerType === 'video') {
-      const video = document.createElement('video');
-      video.src = firstImageUrl;
-      video.onloadedmetadata = () => {
-        if (video.videoWidth && video.videoHeight) {
-          const ar = video.videoWidth / video.videoHeight;
-          setAspectRatio(ar);
-        }
-      };
-      video.onerror = () => {
-        setAspectRatio(21 / 7);
-      };
-    }
-  }, [firstImageUrl, bannerType]);
-
+const renderBanner = (
+  banner: any, 
+  isBanner2: boolean = false, 
+  activeIdx: number = 0, 
+  setActiveIdx?: (idx: number) => void
+) => {
   if (!banner || banner.type === 'none') return null;
+
+  const urls = banner.urls && banner.urls.length > 0 
+    ? banner.urls.filter(Boolean) 
+    : (banner.url ? [banner.url] : []);
+
   if (urls.length === 0 && banner.type !== 'text') return null;
 
   const isMarqueeEnabled = banner.style 
@@ -127,7 +85,7 @@ const BannerWrapper = ({
       >
         <div className="py-2.5 w-full overflow-hidden relative">
           {selectedStyle !== 'marquee' ? (
-            <div className={`w-full text-center font-bold uppercase tracking-widest px-4 py-1 flex justify-center items-center ${getTextSizeClasses(banner.textSize, true)}`}>
+            <div className={`w-full text-center font-bold uppercase tracking-widest px-4 py-1 ${getTextSizeClasses(banner.textSize, true)}`}>
               <span>✨ {textValue} ✨</span>
             </div>
           ) : (
@@ -173,29 +131,24 @@ const BannerWrapper = ({
       }
     }
 
-    const aspectStyle = aspectRatio ? { aspectRatio: `${aspectRatio}` } : { aspectRatio: '21/7' };
-
     return (
-      <section className="w-full overflow-hidden bg-black border-b border-brand-border h-auto relative z-20">
-        <div className="w-full relative overflow-hidden flex flex-col bg-black">
+      <section className="w-full overflow-hidden bg-black border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
+        <div className="w-full relative overflow-hidden flex items-center bg-black">
           {selectedStyle === 'carousel' ? (
             /* Elegant Standard Banner Carousel with next/prev buttons and indicator dots */
-            <div 
-              className="relative w-full bg-black overflow-hidden flex items-center justify-center group/carousel shadow-inner"
-              style={aspectStyle}
-            >
+            <div className="relative w-full h-[130px] sm:h-[180px] md:h-[240px] bg-black overflow-hidden flex items-center justify-center group/carousel shadow-inner">
               {urls[activeIdx] ? (
                 banner.type === 'image' ? (
                   <img 
                     src={urls[activeIdx]} 
                     alt={`Carousel Banner-${activeIdx}`} 
-                    className="w-full h-full block object-fill bg-black select-none transition-all duration-500" 
+                    className="w-full h-full object-fill bg-black select-none transition-all duration-500" 
                     referrerPolicy="no-referrer" 
                   />
                 ) : (
                   <video 
                     src={urls[activeIdx]} 
-                    className="w-full h-full block object-fill bg-black" 
+                    className="w-full h-full object-fill bg-black" 
                     autoPlay 
                     loop 
                     playsInline 
@@ -253,22 +206,19 @@ const BannerWrapper = ({
             </div>
           ) : selectedStyle === 'grid' ? (
             /* Static Single selected image/video as requested: show only the selected ticked image in full-width, not all */
-            <div 
-              className="w-full relative bg-black flex items-center justify-center"
-              style={aspectStyle}
-            >
+            <div className="w-full h-[130px] sm:h-[180px] md:h-[240px] relative bg-black flex items-center justify-center">
               {urls[activeIdx] ? (
                 banner.type === 'image' ? (
                   <img 
                     src={urls[activeIdx]} 
                     alt={`Static Selected Banner-${activeIdx}`} 
-                    className="w-full h-full block object-fill bg-black select-none" 
+                    className="w-full h-full object-fill bg-black select-none" 
                     referrerPolicy="no-referrer" 
                   />
                 ) : (
                   <video 
                     src={urls[activeIdx]} 
-                    className="w-full h-full block object-fill bg-black" 
+                    className="w-full h-full object-fill bg-black" 
                     autoPlay 
                     loop 
                     playsInline 
@@ -281,7 +231,7 @@ const BannerWrapper = ({
             /* Seamless continuous marquee of images/videos with 3px black gap/line */
             <div 
               key={`marquee-media-${banner.marqueeSpeed}-${isLTR}`}
-              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[110px] sm:h-[150px] md:h-[200px] lg:h-[240px] gap-[3px] bg-black`}
+              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[3px] bg-black`}
               style={{ 
                 animation: `${isLTR ? "marquee-ltr" : "marquee-rtl"} ${banner.marqueeSpeed || 25}s linear infinite`,
                 animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
@@ -291,13 +241,9 @@ const BannerWrapper = ({
               {/* Set 1 */}
               <div className="flex gap-[3px] shrink-0 h-full bg-black">
                 {marqueeUrls.map((url, idx) => (
-                  <div 
-                    key={`set1-${idx}`} 
-                    className="h-full relative shrink-0 bg-black"
-                    style={aspectRatio ? { aspectRatio: `${aspectRatio}` } : { aspectRatio: '21/7' }}
-                  >
+                  <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-fill bg-black select-none" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
                     ) : (
                       <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
@@ -307,13 +253,9 @@ const BannerWrapper = ({
               {/* Set 2 */}
               <div className="flex gap-[3px] shrink-0 h-full bg-black" aria-hidden="true">
                 {marqueeUrls.map((url, idx) => (
-                  <div 
-                    key={`set2-${idx}`} 
-                    className="h-full relative shrink-0 bg-black"
-                    style={aspectRatio ? { aspectRatio: `${aspectRatio}` } : { aspectRatio: '21/7' }}
-                  >
+                  <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-fill bg-black select-none" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
                     ) : (
                       <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
@@ -325,7 +267,7 @@ const BannerWrapper = ({
 
           {/* Content text overlay */}
           {banner.text && (
-            <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 select-none z-30 pointer-events-none bg-gradient-to-t from-black/50 to-transparent">
+            <div className="absolute inset-x-0 bottom-0 flex justify-center p-3 select-none z-30 pointer-events-none bg-gradient-to-t from-black/40 to-transparent">
               <h3 
                 className={`font-bold uppercase tracking-widest leading-snug text-center font-display drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-[95%] ${getTextSizeClasses(banner.textSize, false)}`}
                 style={{ color: banner.textColor || '#ffffff' }}
@@ -341,8 +283,6 @@ const BannerWrapper = ({
 
   return null;
 };
-
-
 
 interface HomeProps {
   config: StoreConfig;
@@ -554,18 +494,12 @@ export default function Home({ config }: HomeProps) {
       <Navbar onSearch={setSearchQuery} config={config} />
 
       {/* Banner Section (Top Banner) */}
-      {(() => {
-        const topBannerObj = config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null);
-        if (!topBannerObj || topBannerObj.type === 'none') return null;
-        return (
-          <BannerWrapper 
-            banner={topBannerObj}
-            isBanner2={false}
-            activeIdx={activeBanner1Idx}
-            setActiveIdx={setActiveBanner1Idx}
-          />
-        );
-      })()}
+      {renderBanner(
+        config.banner1 || (config.bannerType && config.bannerType !== 'none' && config.bannerUrl ? { type: config.bannerType, url: config.bannerUrl, text: '' } : null),
+        false,
+        activeBanner1Idx,
+        setActiveBanner1Idx
+      )}
 
       {/* Categories Filter Section - Compact, Slim & Solid Style */}
       <section className="sticky top-16 z-30 border-b border-brand-border py-2 md:py-1.5 shadow-sm bg-gray-100 bg-opacity-95 transition-all duration-300">
@@ -619,14 +553,7 @@ export default function Home({ config }: HomeProps) {
       </section>
 
       {/* Banner Section 2 (Below Category Bar) */}
-      {config.banner2 && config.banner2.type !== 'none' && (
-        <BannerWrapper 
-          banner={config.banner2} 
-          isBanner2={true} 
-          activeIdx={activeBanner2Idx} 
-          setActiveIdx={setActiveBanner2Idx} 
-        />
-      )}
+      {renderBanner(config.banner2, true, activeBanner2Idx, setActiveBanner2Idx)}
 
       {/* Main Product Feed */}
 
@@ -691,23 +618,23 @@ export default function Home({ config }: HomeProps) {
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
           />
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative bg-white w-full max-w-4xl editorial-card overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+            className="relative bg-white w-full max-w-2xl editorial-card overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
           >
             <button 
               onClick={() => setSelectedProduct(null)}
-              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white text-gray-800 transition-all duration-200"
+              className="absolute top-4 right-4 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="w-full md:w-[420px] lg:w-[460px] h-[300px] md:h-[440px] bg-slate-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border overflow-hidden relative">
+            <div className="w-full md:w-[280px] lg:w-[320px] h-[220px] md:h-[280px] lg:h-[320px] bg-gray-50 flex-shrink-0 flex items-center justify-center border-b md:border-b-0 md:border-r border-brand-border overflow-hidden">
               {selectedProduct.imageUrl ? (
                 <img 
                   src={selectedProduct.imageUrl} 
                   alt={selectedProduct.name} 
-                  className="w-full h-full object-contain p-6 transition-all duration-300 hover:scale-110"
+                  className="w-full h-full object-contain p-4 transition-all duration-300 hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
               ) : (
