@@ -49,18 +49,60 @@ const getTextSizeClasses = (size: string | undefined, isTextBanner: boolean = fa
   }
 };
 
-const renderBanner = (
-  banner: any, 
-  isBanner2: boolean = false, 
-  activeIdx: number = 0, 
-  setActiveIdx?: (idx: number) => void
-) => {
-  if (!banner || banner.type === 'none') return null;
+const StoreBanner = ({
+  banner,
+  isBanner2 = false,
+  activeIdx = 0,
+  setActiveIdx,
+}: {
+  banner: any;
+  isBanner2?: boolean;
+  activeIdx: number;
+  setActiveIdx?: (idx: number) => void;
+}) => {
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
-  const urls = banner.urls && banner.urls.length > 0 
+  const urls = banner?.urls && banner.urls.length > 0 
     ? banner.urls.filter(Boolean) 
-    : (banner.url ? [banner.url] : []);
+    : (banner?.url ? [banner.url] : []);
 
+  const selectedIdx = banner?.selectedUrlIdx ?? 0;
+  const selectedUrl = urls[selectedIdx] || urls[0] || "";
+
+  useEffect(() => {
+    if (!selectedUrl || (banner?.type !== 'image' && banner?.type !== 'video')) {
+      setAspectRatio(null);
+      return;
+    }
+
+    if (banner.type === 'image') {
+      const img = new Image();
+      img.src = selectedUrl;
+      img.onload = () => {
+        if (img.naturalWidth && img.naturalHeight) {
+          setAspectRatio(img.naturalWidth / img.naturalHeight);
+        }
+      };
+      img.onerror = () => {
+        setAspectRatio(null);
+      };
+    } else if (banner.type === 'video') {
+      const video = document.createElement('video');
+      video.src = selectedUrl;
+      video.autoplay = false;
+      video.muted = true;
+      video.onloadedmetadata = () => {
+        if (video.videoWidth && video.videoHeight) {
+          setAspectRatio(video.videoWidth / video.videoHeight);
+        }
+      };
+      video.onerror = () => {
+        setAspectRatio(null);
+      };
+    }
+  }, [selectedUrl, banner?.type]);
+
+  if (!banner || banner.type === 'none') return null;
   if (urls.length === 0 && banner.type !== 'text') return null;
 
   const isMarqueeEnabled = banner.style 
@@ -98,7 +140,6 @@ const renderBanner = (
                 "--marquee-duration": banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s"
               } as React.CSSProperties}
             >
-              {/* Set 1 */}
               <div className="flex gap-16 shrink-0">
                 {repeats.map((t, idx) => (
                   <span key={`set1-${idx}`} className="flex items-center gap-2">
@@ -107,7 +148,6 @@ const renderBanner = (
                   </span>
                 ))}
               </div>
-              {/* Set 2 */}
               <div className="flex gap-16 shrink-0" aria-hidden="true">
                 {repeats.map((t, idx) => (
                   <span key={`set2-${idx}`} className="flex items-center gap-2">
@@ -131,12 +171,21 @@ const renderBanner = (
       }
     }
 
+    // Dynamic style with exact aspect ratio
+    const containerStyle: React.CSSProperties = aspectRatio 
+      ? { aspectRatio: `${aspectRatio}` } 
+      : {};
+
+    const parentClass = aspectRatio
+      ? "w-full relative overflow-hidden flex items-center bg-black leading-[0] transition-all duration-300"
+      : "w-full relative overflow-hidden flex items-center bg-black leading-[0] min-h-[130px] sm:min-h-[180px] md:min-h-[240px] transition-all duration-300";
+
     return (
-      <section className="w-full overflow-hidden bg-black border-b border-brand-border min-h-[130px] sm:min-h-[180px] md:min-h-[240px] relative z-20">
-        <div className="w-full relative overflow-hidden flex items-center bg-black">
+      <section className="w-full overflow-hidden bg-black border-b border-brand-border relative z-20">
+        <div style={containerStyle} className={parentClass}>
           {selectedStyle === 'carousel' ? (
             /* Elegant Standard Banner Carousel with next/prev buttons and indicator dots */
-            <div className="relative w-full h-[130px] sm:h-[180px] md:h-[240px] bg-black overflow-hidden flex items-center justify-center group/carousel shadow-inner">
+            <div className="w-full h-full overflow-hidden flex items-center justify-center group/carousel shadow-inner relative">
               {urls[activeIdx] ? (
                 banner.type === 'image' ? (
                   <img 
@@ -162,7 +211,7 @@ const renderBanner = (
                 <button
                   type="button"
                   onClick={() => setActiveIdx((activeIdx - 1 + urls.length) % urls.length)}
-                  className="absolute left-3 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
                 >
                   <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
                 </button>
@@ -173,17 +222,16 @@ const renderBanner = (
                 <button
                   type="button"
                   onClick={() => setActiveIdx((activeIdx + 1) % urls.length)}
-                  className="absolute right-3 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 hover:bg-black/85 border border-white/10 flex items-center justify-center text-white transition-all opacity-0 group-hover/carousel:opacity-100 duration-300 shadow-md hover:scale-105"
                 >
                   <ChevronRight className="w-5 h-5 stroke-[2.5]" />
                 </button>
               )}
 
-              {/* Indicator dots at the bottom right corner of the banner */}
+              {/* Indicator dots at top/bottom corner */}
               {urls.length > 1 && setActiveIdx && (
                 <div 
-                  style={{ left: 'auto', right: '12px' }}
-                  className="absolute bottom-3 right-3 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm"
+                  className="absolute bottom-3 right-3 z-30 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full flex gap-1.5 border border-white/10 shadow-sm leading-none"
                 >
                   {urls.map((_: any, idx: number) => {
                     const isSelected = idx === activeIdx;
@@ -205,8 +253,8 @@ const renderBanner = (
               )}
             </div>
           ) : selectedStyle === 'grid' ? (
-            /* Static Single selected image/video as requested: show only the selected ticked image in full-width, not all */
-            <div className="w-full h-[130px] sm:h-[180px] md:h-[240px] relative bg-black flex items-center justify-center">
+            /* Static Single selected image/video: show only the selected ticked image in full-width, not all */
+            <div className="w-full h-full bg-black flex items-center justify-center relative">
               {urls[activeIdx] ? (
                 banner.type === 'image' ? (
                   <img 
@@ -231,19 +279,24 @@ const renderBanner = (
             /* Seamless continuous marquee of images/videos with 3px black gap/line */
             <div 
               key={`marquee-media-${banner.marqueeSpeed}-${isLTR}`}
-              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-[130px] sm:h-[180px] md:h-[240px] gap-[3px] bg-black`}
+              className={`${animationClass} hover:[animation-play-state:paused] flex shrink-0 h-full bg-black`}
               style={{ 
                 animation: `${isLTR ? "marquee-ltr" : "marquee-rtl"} ${banner.marqueeSpeed || 25}s linear infinite`,
                 animationDuration: banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
-                "--marquee-duration": banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s"
+                "--marquee-duration": banner.marqueeSpeed ? `${banner.marqueeSpeed}s` : "25s",
+                height: '100%'
               } as React.CSSProperties}
             >
               {/* Set 1 */}
-              <div className="flex gap-[3px] shrink-0 h-full bg-black">
+              <div className="flex gap-[3px] shrink-0 h-full bg-black relative">
                 {marqueeUrls.map((url, idx) => (
-                  <div key={`set1-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
+                  <div 
+                    key={`set1-${idx}`} 
+                    style={containerStyle}
+                    className="h-full shrink-0 bg-black relative flex items-center justify-center"
+                  >
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set1-${idx}`} className="w-full h-full object-fill bg-black select-none" referrerPolicy="no-referrer" />
                     ) : (
                       <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
@@ -251,11 +304,15 @@ const renderBanner = (
                 ))}
               </div>
               {/* Set 2 */}
-              <div className="flex gap-[3px] shrink-0 h-full bg-black" aria-hidden="true">
+              <div className="flex gap-[3px] shrink-0 h-full bg-black relative" aria-hidden="true">
                 {marqueeUrls.map((url, idx) => (
-                  <div key={`set2-${idx}`} className="h-full relative w-[240px] sm:w-[350px] md:w-[450px] shrink-0 bg-black">
+                  <div 
+                    key={`set2-${idx}`} 
+                    style={containerStyle}
+                    className="h-full shrink-0 bg-black relative flex items-center justify-center"
+                  >
                     {banner.type === 'image' ? (
-                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-fill bg-black" referrerPolicy="no-referrer" />
+                      <img src={url} alt={`Banner Set2-${idx}`} className="w-full h-full object-fill bg-black select-none" referrerPolicy="no-referrer" />
                     ) : (
                       <video src={url} className="w-full h-full object-fill bg-black" autoPlay loop playsInline muted />
                     )}
@@ -282,6 +339,22 @@ const renderBanner = (
   }
 
   return null;
+};
+
+const renderBanner = (
+  banner: any, 
+  isBanner2: boolean = false, 
+  activeIdx: number = 0, 
+  setActiveIdx?: (idx: number) => void
+) => {
+  return (
+    <StoreBanner 
+      banner={banner} 
+      isBanner2={isBanner2} 
+      activeIdx={activeIdx} 
+      setActiveIdx={setActiveIdx} 
+    />
+  );
 };
 
 interface HomeProps {
