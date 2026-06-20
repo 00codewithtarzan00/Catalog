@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES } from "../../constants";
 import { compressImage, compressImageToAvif } from "../../lib/utils";
+import { compressVideoToWebM, CompressionStats } from "../../lib/videoCompressor";
 
 interface SettingsInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
   value: string;
@@ -119,6 +120,88 @@ export default function SettingsManager() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [compressionStats, setCompressionStats] = useState<Record<string, { originalSize: string; compressedSize: string; ratio: string; format?: string }>>({});
 
+  const handleCompressionComplete = (
+    dataUrl: string,
+    stats: CompressionStats,
+    field: string,
+    index?: number
+  ) => {
+    const uploadKey = index !== undefined ? `${field}-${index}` : field;
+    if (field === "banner1") {
+      setConfig((prev) => {
+        const b1 = prev.banner1 || {
+          type: "none",
+          url: "",
+          text: "",
+          bgColor: "#0047AB",
+          textColor: "#ffffff",
+        };
+        if (index !== undefined) {
+          const currentUrls = [...(b1.urls || (b1.url ? [b1.url] : []))];
+          currentUrls[index] = dataUrl;
+          return {
+            ...prev,
+            banner1: {
+              ...b1,
+              urls: currentUrls,
+              url: currentUrls[0] || "",
+            },
+          };
+        } else {
+          return {
+            ...prev,
+            banner1: {
+              ...b1,
+              url: dataUrl,
+              urls: b1.urls ? [dataUrl, ...b1.urls.slice(1)] : [dataUrl],
+            },
+          };
+        }
+      });
+    } else if (field === "banner2") {
+      setConfig((prev) => {
+        const b2 = prev.banner2 || {
+          type: "none",
+          url: "",
+          text: "",
+          bgColor: "#0047AB",
+          textColor: "#ffffff",
+         };
+        if (index !== undefined) {
+          const currentUrls = [...(b2.urls || (b2.url ? [b2.url] : []))];
+          currentUrls[index] = dataUrl;
+          return {
+            ...prev,
+            banner2: {
+              ...b2,
+              urls: currentUrls,
+              url: currentUrls[0] || "",
+            },
+          };
+        } else {
+          return {
+            ...prev,
+            banner2: {
+              ...b2,
+              url: dataUrl,
+              urls: b2.urls ? [dataUrl, ...b2.urls.slice(1)] : [dataUrl],
+            },
+          };
+        }
+      });
+    }
+
+    setCompressionStats((prev) => ({
+      ...prev,
+      [uploadKey]: {
+        originalSize: stats.originalSizeKb < 1024 ? `${stats.originalSizeKb.toFixed(1)} KB` : `${(stats.originalSizeKb / 1024).toFixed(2)} MB`,
+        compressedSize: `${stats.compressedSizeKb.toFixed(1)} KB`,
+        ratio: `${stats.savingsPercent}%`,
+        format: "WebM",
+      },
+    }));
+  };
+
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: string,
@@ -131,6 +214,25 @@ export default function SettingsManager() {
       setUploading(uploadKey);
 
       const originalSizeKB = file.size / 1024;
+
+      if (file.type.startsWith("video/")) {
+        // Fast instant Cognitive Neuro compression
+        compressVideoToWebM(file, {
+          detailFocus: 3,
+          noiseSuppression: "medium",
+        })
+          .then((result) => {
+            handleCompressionComplete(result.dataUrl, result.stats, field, index);
+            setUploading(null);
+          })
+          .catch((err) => {
+            console.error("Video compression failed:", err);
+            alert("Video compression failed: " + err.message);
+            setUploading(null);
+          });
+        e.target.value = "";
+        return;
+      }
 
       const processResult = (result: string) => {
         if (isCategory) {
@@ -156,9 +258,9 @@ export default function SettingsManager() {
               return {
                 ...prev,
                 banner1: {
-                  ...b1,
-                  urls: currentUrls,
-                  url: currentUrls[0] || "",
+                   ...b1,
+                   urls: currentUrls,
+                   url: currentUrls[0] || "",
                 },
               };
             } else {
@@ -1509,12 +1611,12 @@ export default function SettingsManager() {
           >
             <Save className="w-4 h-4" />
             {loading
-              ? "Saving..."
-              : uploading
-                ? "Wait for upload..."
-                : saved
-                  ? "Updated"
-                  : "Update"}
+               ? "Saving..."
+               : uploading
+                 ? "Wait for upload..."
+                 : saved
+                   ? "Updated"
+                   : "Update"}
           </button>
         </div>
       </form>
