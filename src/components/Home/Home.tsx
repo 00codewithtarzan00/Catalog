@@ -176,18 +176,12 @@ const StoreBanner = ({
       ? { aspectRatio: `${aspectRatio}` } 
       : {};
 
-    const isSquareOrPortrait = aspectRatio ? aspectRatio <= 1.25 : false;
-
     const parentClass = aspectRatio
-      ? `w-full relative overflow-hidden flex items-center bg-black leading-[0] transition-all duration-300 ${isSquareOrPortrait ? 'md:max-h-[500px]' : ''}`
+      ? "w-full relative overflow-hidden flex items-center bg-black leading-[0] transition-all duration-300"
       : "w-full relative overflow-hidden flex items-center bg-black leading-[0] min-h-[130px] sm:min-h-[180px] md:min-h-[240px] transition-all duration-300";
 
     return (
-      <section className={`w-full overflow-hidden bg-black relative z-20 transition-all duration-300 ${
-        isSquareOrPortrait 
-          ? 'border-b border-brand-border md:border md:max-w-[500px] md:rounded-2xl md:mx-auto md:my-6 md:shadow-md border-brand-border/60' 
-          : 'border-b border-brand-border'
-      }`}>
+      <section className="w-full overflow-hidden bg-black border-b border-brand-border relative z-20">
         <div style={containerStyle} className={parentClass}>
           {selectedStyle === 'carousel' ? (
             /* Elegant Standard Banner Carousel with next/prev buttons and indicator dots */
