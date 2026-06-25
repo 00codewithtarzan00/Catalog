@@ -136,3 +136,9 @@ export function compressImageToAvif(
 export function compressImage(file: File, maxW = 1000, maxH = 1000, quality = 0.7): Promise<string> {
   return compressImageToAvif(file, maxW, maxH, quality).then((res) => res.dataUrl);
 }
+
+export function cleanCategoryName(categoryName: string | undefined | null): string {
+  if (!categoryName) return '';
+  return categoryName.split('(')[0].trim();
+}
+

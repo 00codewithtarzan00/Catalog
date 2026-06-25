@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, d
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Product } from '../../types';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload, Search } from 'lucide-react';
-import { formatPrice, formatQuantityUnit, compressImage, compressImageToAvif } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, compressImage, compressImageToAvif, cleanCategoryName } from '../../lib/utils';
 import { CATEGORIES } from '../../constants';
 
 export default function ProductManager() {
@@ -170,7 +170,7 @@ export default function ProductManager() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 mb-1 flex-wrap">
                   <span className="text-[10px] uppercase font-bold text-brand-muted bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
-                    {p.category}
+                    {cleanCategoryName(p.category)}
                   </span>
                   <h3 className="font-bold text-sm tracking-tight break-words">{p.name}</h3>
                 </div>
@@ -279,12 +279,12 @@ export default function ProductManager() {
                   <select
                     required
                     className="editorial-input h-10 appearance-none bg-white"
-                    value={currentProduct?.category || ''}
+                    value={currentProduct?.category ? cleanCategoryName(currentProduct.category) : ''}
                     onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
                   >
                     <option value="" disabled>Select Category</option>
                     {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat}>{cleanCategoryName(cat)}</option>
                     ))}
                   </select>
                 </div>

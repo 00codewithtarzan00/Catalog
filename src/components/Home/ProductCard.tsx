@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product } from '../../types';
-import { formatPrice, formatQuantityUnit } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, cleanCategoryName } from '../../lib/utils';
 import { motion } from 'motion/react';
 
 interface ProductCardProps {
@@ -57,7 +57,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       <div className="p-3 md:p-4 flex flex-col min-h-0 md:min-h-36">
         <div className="flex items-center justify-between mb-1 gap-1">
           <span className="text-[10px] sm:text-xs md:text-sm uppercase tracking-wider text-brand-muted font-semibold truncate leading-none">
-            {product.category}
+            {cleanCategoryName(product.category)}
           </span>
          </div>
         <h3 className="font-display font-bold text-sm sm:text-base md:text-[17px] leading-snug line-clamp-2 text-brand-text mb-1 h-11 sm:h-12 md:h-14 overflow-hidden">

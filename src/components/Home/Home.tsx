@@ -6,7 +6,7 @@ import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
 import ProductCard from './ProductCard';
 import ProductFeedLayouts from './ProductFeedLayouts';
-import { formatPrice, formatQuantityUnit } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, cleanCategoryName } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -517,7 +517,7 @@ export default function Home({ config }: HomeProps) {
       p.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
     
-    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const matchesCategory = !selectedCategory || cleanCategoryName(p.category) === cleanCategoryName(selectedCategory);
     
     return matchesSearch && matchesCategory;
   });
@@ -616,7 +616,7 @@ export default function Home({ config }: HomeProps) {
                     </span>
                   )}
                   <span className="text-[11px] sm:text-xs md:text-[11px] font-extrabold tracking-wider uppercase whitespace-nowrap leading-none text-current">
-                    {cat.split('(')[0].trim().toUpperCase()}
+                    {cleanCategoryName(cat).toUpperCase()}
                   </span>
                 </button>
               );
@@ -635,7 +635,7 @@ export default function Home({ config }: HomeProps) {
       <main className="flex-1 px-4 md:px-10 py-10 max-w-7xl mx-auto w-full">
         {selectedCategory && (
           <div className="mb-8 border-l-4 border-brand-accent pl-4 py-2 bg-brand-accent/5">
-              <h2 className="text-xl font-display font-bold text-brand-accent">{selectedCategory}</h2>
+              <h2 className="text-xl font-display font-bold text-brand-accent">{cleanCategoryName(selectedCategory)}</h2>
               <p className="text-xs text-brand-muted">{filteredProducts.length} items available in this section</p>
           </div>
         )}
@@ -721,7 +721,7 @@ export default function Home({ config }: HomeProps) {
             <div className="p-6 md:p-8 flex flex-col flex-1 overflow-y-auto">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-accent">
-                  {selectedProduct.category}
+                  {cleanCategoryName(selectedProduct.category)}
                 </span>
               </div>
               <h2 className="text-2xl md:text-3xl font-display font-bold mb-2 leading-tight">

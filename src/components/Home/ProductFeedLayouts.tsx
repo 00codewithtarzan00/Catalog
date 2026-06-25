@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product } from '../../types';
-import { formatPrice, formatQuantityUnit } from '../../lib/utils';
+import { formatPrice, formatQuantityUnit, cleanCategoryName } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft, 
@@ -202,7 +202,7 @@ function FlipProductCard({ product, onProductClick }: { product: Product, onProd
             )}
           </div>
           <div className="p-4 flex flex-col flex-1">
-            <span className="text-[10px] uppercase tracking-wider text-brand-muted font-bold mb-1 block leading-none">{product.category}</span>
+            <span className="text-[10px] uppercase tracking-wider text-brand-muted font-bold mb-1 block leading-none">{cleanCategoryName(product.category)}</span>
             <h3 className="font-display font-medium text-sm sm:text-base text-brand-text mb-2 line-clamp-2 h-10 overflow-hidden leading-tight">{product.name}</h3>
             {product.showQuantity && product.quantityValue && (
               <span className="text-xs font-semibold text-[#888] leading-none block mb-1">{product.quantityValue} {formatQuantityUnit(product.quantityUnit || 'g')}</span>
@@ -223,7 +223,7 @@ function FlipProductCard({ product, onProductClick }: { product: Product, onProd
           <div className="flex flex-col h-full justify-between">
             <div>
               <div className="flex items-center gap-1.5 mb-2.5">
-                <span className="bg-brand-accent text-white font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider">{product.category}</span>
+                <span className="bg-brand-accent text-white font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider">{cleanCategoryName(product.category)}</span>
                 {discountPercent > 0 && (
                   <span className="bg-red-600 text-white font-mono text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded">SAVE {formatPrice(product.mrp! - product.price)}</span>
                 )}
@@ -328,7 +328,7 @@ function AccordionSlider({ products, onProductClick }: { products: Product[], on
               {/* Product Description Panel - Only visible when active */}
               <div className={`p-4 md:p-6 flex flex-col justify-between flex-1 overflow-hidden transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6 pointer-events-none'}`}>
                 <div>
-                  <span className="text-[9px] uppercase tracking-widest text-[#999] font-bold block mb-1">{product.category}</span>
+                  <span className="text-[9px] uppercase tracking-widest text-[#999] font-bold block mb-1">{cleanCategoryName(product.category)}</span>
                   <h3 className="font-display font-bold text-base md:text-lg text-brand-dark leading-tight line-clamp-2 mb-2">{product.name}</h3>
                   {product.showQuantity && product.quantityValue && (
                      <span className="text-xs font-semibold text-[#666] leading-none mb-3 block">Weight: {product.quantityValue} {formatQuantityUnit(product.quantityUnit || 'g')}</span>
@@ -414,7 +414,7 @@ function StaticSpotlightShowcase({ products, onProductClick }: { products: Produ
             </div>
 
             <div className="mt-5 w-full text-left space-y-1">
-              <span className="text-[9px] uppercase font-bold tracking-widest text-[#999]">{activeProduct.category}</span>
+              <span className="text-[9px] uppercase font-bold tracking-widest text-[#999]">{cleanCategoryName(activeProduct.category)}</span>
               <h4 className="font-display font-semibold text-base sm:text-lg text-brand-dark leading-snug line-clamp-2">{activeProduct.name}</h4>
               {activeProduct.showQuantity && activeProduct.quantityValue && (
                 <p className="text-xs font-semibold text-brand-muted capitalize">Weight/Size: {activeProduct.quantityValue} {formatQuantityUnit(activeProduct.quantityUnit || 'g')}</p>
@@ -482,7 +482,7 @@ function StaticSpotlightShowcase({ products, onProductClick }: { products: Produ
 
                 <div className="p-3 flex flex-col justify-between flex-1">
                   <div>
-                    <span className="text-[8px] uppercase tracking-wider text-[#999] font-bold block mb-0.5 leading-none">{p.category}</span>
+                    <span className="text-[8px] uppercase tracking-wider text-[#999] font-bold block mb-0.5 leading-none">{cleanCategoryName(p.category)}</span>
                     <h5 className="font-display font-semibold text-xs text-brand-dark line-clamp-2 leading-snug h-8 overflow-hidden">{p.name}</h5>
                   </div>
                   <div className="mt-3 flex items-baseline justify-between">
@@ -639,7 +639,7 @@ function StoryStyleTappingBanner({ products, onProductClick }: { products: Produ
                   </div>
                   <div className="text-left">
                     <p className="text-xs font-bold text-white leading-none">Raj Kirana Offers</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">{storyProducts[activeIdx].category}</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">{cleanCategoryName(storyProducts[activeIdx].category)}</p>
                   </div>
                 </div>
                 <button 
