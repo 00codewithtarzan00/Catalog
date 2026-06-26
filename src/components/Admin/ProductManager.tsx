@@ -370,6 +370,8 @@ export default function ProductManager() {
                       <option value="ml">Milliliter (ml)</option>
                       <option value="l">Liter (L)</option>
                       <option value="packet">Packet (pkt)</option>
+                      <option value="set">Set</option>
+                      <option value="box">Box</option>
                     </select>
                   </div>
                 </div>
