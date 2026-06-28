@@ -43,8 +43,8 @@ export default function Contact({ config }: ContactProps) {
               </div>
               <div>
                 <h3 className="text-xs uppercase font-bold tracking-widest text-brand-muted mb-1">Email Us</h3>
-                <a href="mailto:tarzanmaurya1234@gmail.com" className="text-lg font-semibold text-brand-accent hover:underline break-all">
-                  tarzanmaurya1234@gmail.com
+                <a href="mailto:rajkiranastore0123@gmail.com" className="text-lg font-semibold text-brand-accent hover:underline break-all">
+                  rajkiranastore0123@gmail.com
                 </a>
               </div>
             </div>

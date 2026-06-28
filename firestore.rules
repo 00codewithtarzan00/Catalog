@@ -90,6 +90,11 @@ service cloud.firestore {
       allow write: if true;
     }
 
+    // Orders
+    match /orders/{orderId} {
+      allow read, create, update, delete: if true;
+    }
+
     // User Profile (for RBAC)
     match /users/{userId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;

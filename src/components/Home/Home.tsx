@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, limit, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { Product, StoreConfig } from '../../types';
+import { Product, StoreConfig, CartItem } from '../../types';
 import { CATEGORIES } from '../../constants';
 import Navbar from './Navbar';
 import ProductCard from './ProductCard';
 import ProductFeedLayouts from './ProductFeedLayouts';
+import OrderModal from './OrderModal';
 import { formatPrice, formatQuantityUnit, cleanCategoryName } from '../../lib/utils';
-import { motion } from 'motion/react';
-import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Star, X, Grid, ShoppingBag, ShoppingBasket, Heart, Home as HomeIcon, CupSoda, Sparkles, Pencil, CheckCircle2, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react';
 
 const getCategoryIcon = (category: string | null, sizeClass = "w-5 h-5 md:w-4 h-4") => {
   if (!category) return <Grid className={sizeClass} />;
@@ -371,6 +372,48 @@ export default function Home({ config }: HomeProps) {
   const [activeBanner1Idx, setActiveBanner1Idx] = useState(0);
   const [activeBanner2Idx, setActiveBanner2Idx] = useState(0);
   const showIcons = true;
+
+  // Cart State Management
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('rk_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('rk_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (product: Product) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    setCartItems((prev) => {
+      if (quantity <= 0) {
+        return prev.filter((item) => item.product.id !== productId);
+      }
+      return prev.map((item) =>
+        item.product.id === productId ? { ...item, quantity } : item
+      );
+    });
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
   
   const [dataStatus, setDataStatus] = useState({ 
     products: false, 
@@ -758,6 +801,43 @@ export default function Home({ config }: HomeProps) {
                 </p>
               </div>
 
+              {selectedProduct.available && (
+                <div className="mt-6">
+                  {cartItems.find((item) => item.product.id === selectedProduct.id) ? (
+                    <div className="flex items-center justify-between gap-4 bg-gray-50 p-3 rounded-xl border border-brand-border">
+                      <span className="text-xs font-bold text-brand-muted uppercase tracking-wider">In Cart:</span>
+                      <div className="flex items-center border border-brand-border rounded-lg bg-white overflow-hidden shadow-sm">
+                        <button
+                          onClick={() => {
+                            const currentQty = cartItems.find((item) => item.product.id === selectedProduct.id)?.quantity || 0;
+                            updateCartQuantity(selectedProduct.id, currentQty - 1);
+                          }}
+                          className="p-1.5 px-3.5 hover:bg-gray-50 text-brand-text text-sm font-bold"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-sm font-bold text-brand-text px-2 min-w-[24px] text-center">
+                          {cartItems.find((item) => item.product.id === selectedProduct.id)?.quantity || 0}
+                        </span>
+                        <button
+                          onClick={() => addToCart(selectedProduct)}
+                          className="p-1.5 px-3.5 hover:bg-gray-50 text-brand-text text-sm font-bold"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => addToCart(selectedProduct)}
+                      className="w-full bg-brand-accent text-white p-4 rounded-xl font-bold text-sm shadow-lg hover:bg-opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                      <ShoppingBag className="w-4 h-4" /> Add to Cart (₹{selectedProduct.price})
+                    </button>
+                  )}
+                </div>
+              )}
+
               {!selectedProduct.available && (
                 <div className="mt-6 p-3 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded text-center">
                   Currently Out of Stock
@@ -767,6 +847,38 @@ export default function Home({ config }: HomeProps) {
           </motion.div>
         </div>
       )}
+
+      {/* Floating Cart Button */}
+      {cartItems.length > 0 && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOrderModalOpen(true)}
+          className="fixed bottom-6 right-6 z-[90] bg-brand-accent text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 border border-white/10 active:scale-95"
+          id="floating-cart-btn"
+        >
+          <div className="relative">
+            <ShoppingBag className="w-6 h-6" />
+            <span className="absolute -top-2.5 -right-2.5 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-brand-accent">
+              {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider hidden md:inline pr-1">
+            View Cart (₹{cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)})
+          </span>
+        </motion.button>
+      )}
+
+      {/* Order & Checkout Modal */}
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={updateCartQuantity}
+        onClearCart={clearCart}
+      />
 
       <footer className="border-t border-brand-border py-10 px-6 text-center text-xs text-brand-muted uppercase tracking-[0.2em]">
         &copy; {new Date().getFullYear()} Raj Kirana Store &bull; Quality and Freshness

@@ -53,3 +53,32 @@ export interface StoreConfig {
   banner2?: BannerSetting;
   productLayout?: 'standard_grid' | 'carousel' | 'coverflow' | 'hover_swap' | 'accordion' | 'static_showcase' | 'story_banner';
 }
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface Order {
+  id?: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  customerPincode?: string;
+  location?: {
+    lat: number;
+    lng: number;
+    address?: string;
+  };
+  items: {
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    quantityValue?: number;
+    quantityUnit?: string;
+  }[];
+  totalPrice: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  createdAt: number;
+}

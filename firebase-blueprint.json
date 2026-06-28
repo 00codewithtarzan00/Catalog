@@ -37,6 +37,23 @@
         "categoryImages": { "type": "object", "description": "Mapping of category names to image URLs" },
         "allCategoriesImageUrl": { "type": "string", "format": "url" }
       }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerAddress": { "type": "string" },
+        "customerPincode": { "type": "string" },
+        "location": { "type": "object" },
+        "items": { "type": "array" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["customerName", "customerPhone", "items", "totalPrice", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -51,6 +68,10 @@
     "/config/global": {
       "schema": "StoreConfig",
       "description": "Global store settings"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders"
     }
   }
 }
