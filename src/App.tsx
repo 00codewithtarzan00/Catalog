@@ -6,6 +6,7 @@ import Login from './components/Admin/Login';
 import NoticeHistory from './components/Home/NoticeHistory';
 import Contact from './components/Home/Contact';
 import About from './components/Home/About';
+import InvoicePage from './components/Home/InvoicePage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/about" element={<About config={config} />} />
             <Route path="/contact" element={<Contact config={config} />} />
             <Route path="/notices" element={<NoticeHistory config={config} />} />
+            <Route path="/invoice/:id" element={<InvoicePage />} />
             <Route path="/admin" element={isAdmin ? <AdminDashboard onLogout={handleLogout} /> : <Login onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/admin/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
           </Routes>
