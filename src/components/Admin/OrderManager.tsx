@@ -249,9 +249,9 @@ export default function OrderManager() {
                         transition={{ duration: 0.2 }}
                         className="border-t border-brand-border bg-gray-50/40"
                       >
-                        <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6 text-sm text-brand-text">
+                        <div className="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 text-sm text-brand-text">
                           {/* Left Panel: Contact info */}
-                          <div className="lg:col-span-5 space-y-4 border-b lg:border-b-0 lg:border-r border-brand-border pb-5 lg:pb-0 lg:pr-6">
+                          <div className="md:col-span-5 space-y-4 border-b md:border-b-0 md:border-r border-brand-border pb-5 md:pb-0 md:pr-6">
                             <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                               Customer Contact & Route
                             </h4>
@@ -297,7 +297,7 @@ export default function OrderManager() {
                           </div>
 
                           {/* Right Panel: Ordered items table */}
-                          <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+                          <div className="md:col-span-7 flex flex-col justify-between space-y-4">
                             <div className="space-y-2">
                               <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                                 Order Items ({order.items.reduce((s, i) => s + i.quantity, 0)})
@@ -324,20 +324,20 @@ export default function OrderManager() {
                               </div>
                             </div>
 
-                            <div className="border-t border-brand-border pt-4 flex items-center justify-between gap-4 overflow-hidden">
-                              <div className="flex items-center gap-2 shrink-0">
+                            <div className="border-t border-brand-border pt-4 flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-2">
                                 {confirmDeleteId === order.id ? (
-                                  <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 p-1 rounded-xl animate-fade-in shrink-0">
+                                  <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 p-1 rounded-xl animate-fade-in">
                                     <span className="text-[10px] font-bold text-red-700 px-1.5">Confirm?</span>
                                     <button
                                       onClick={() => handleDeleteOrder(order.id!)}
-                                      className="bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                                      className="bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer"
                                     >
                                       Delete
                                     </button>
                                     <button
                                       onClick={() => setConfirmDeleteId(null)}
-                                      className="bg-white border border-brand-border text-brand-muted px-2 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                                      className="bg-white border border-brand-border text-brand-muted px-2 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer"
                                     >
                                       Cancel
                                     </button>
@@ -345,7 +345,7 @@ export default function OrderManager() {
                                 ) : (
                                   <button
                                     onClick={() => setConfirmDeleteId(order.id!)}
-                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 flex items-center gap-1 text-xs font-bold cursor-pointer whitespace-nowrap shrink-0"
+                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100 flex items-center gap-1 text-xs font-bold cursor-pointer"
                                     title="Delete Permanent Log"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -353,10 +353,10 @@ export default function OrderManager() {
                                 )}
                               </div>
 
-                              <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar scrollbar-hide py-1 max-w-full">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => sendWhatsAppNotification(order, 'bill')}
-                                  className="bg-brand-accent/10 text-brand-accent border border-brand-accent/20 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-accent/20 transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                                  className="bg-brand-accent/10 text-brand-accent border border-brand-accent/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-accent/20 transition-colors flex items-center gap-1 cursor-pointer"
                                   title="Send Bill/Invoice on WhatsApp"
                                 >
                                   <MessageCircle className="w-3.5 h-3.5" /> Send Bill
@@ -365,20 +365,20 @@ export default function OrderManager() {
                                   <>
                                     <button
                                       onClick={() => sendWhatsAppNotification(order, 'placed')}
-                                      className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                                      className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
                                       title="Notify Order Received on WhatsApp"
                                     >
-                                      <MessageCircle className="w-3.5 h-3.5" /> Received
+                                      <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Received
                                     </button>
                                     <button
                                       onClick={() => handleUpdateStatus(order.id!, 'cancelled')}
-                                      className="bg-red-50 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors whitespace-nowrap shrink-0"
+                                      className="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors"
                                     >
-                                      Cancel
+                                      Cancel Order
                                     </button>
                                     <button
                                       onClick={() => handleUpdateStatus(order.id!, 'completed')}
-                                      className="bg-green-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition-colors shadow-sm whitespace-nowrap shrink-0"
+                                      className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"
                                     >
                                       Place Order
                                     </button>
@@ -388,17 +388,17 @@ export default function OrderManager() {
                                     {order.status === 'completed' && (
                                       <button
                                         onClick={() => sendWhatsAppNotification(order, 'delivered')}
-                                        className="bg-emerald-600 text-white border border-emerald-700 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+                                        className="bg-emerald-600 text-white border border-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
                                         title="Notify Order Delivered on WhatsApp"
                                       >
-                                        <MessageCircle className="w-3.5 h-3.5" /> Delivered
+                                        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Delivered
                                       </button>
                                     )}
                                     <button
                                       onClick={() => handleUpdateStatus(order.id!, 'pending')}
-                                      className="bg-white border border-brand-border text-brand-muted px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors whitespace-nowrap shrink-0"
+                                      className="bg-white border border-brand-border text-brand-muted px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
                                     >
-                                      Revert
+                                      Revert to Pending
                                     </button>
                                   </>
                                 )}
