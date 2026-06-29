@@ -69,7 +69,7 @@ export default function OrderManager() {
         `Great news! Your order *#${order.id?.toUpperCase()}* has been successfully delivered to your address.\n\n` +
         `Thank you for shopping with us! Please order again soon. 🙏`;
     } else if (type === 'bill') {
-      const invoiceUrl = `${window.location.origin}/invoice/${order.id}`;
+      const invoiceUrl = `${window.location.origin}/#/invoice/${order.id}`;
       message = `*🧾 RAJ KIRANA STORE - INVOICE*\n\n` +
         `*Order ID:* #${order.id?.toUpperCase()}\n` +
         `*Customer:* ${order.customerName}\n` +
