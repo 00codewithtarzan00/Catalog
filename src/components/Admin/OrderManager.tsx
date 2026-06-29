@@ -80,7 +80,7 @@ export default function OrderManager() {
       message = `*💬 RAJ KIRANA STORE*\n\nHello *${order.customerName}*, regarding your order *#${order.id?.toUpperCase()}*: `;
     }
 
-    const url = `https://wa.me/91${cleanPhone.length === 10 ? cleanPhone : cleanPhone}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
