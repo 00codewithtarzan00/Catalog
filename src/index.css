@@ -82,3 +82,9 @@
   animation: marquee-rtl var(--marquee-duration) linear infinite;
   will-change: transform;
 }
+
+svg.lucide {
+  transform: scale(0.88);
+  transform-origin: center;
+}
+
