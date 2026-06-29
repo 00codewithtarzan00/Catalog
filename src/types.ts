@@ -65,11 +65,6 @@ export interface Order {
   customerPhone: string;
   customerAddress: string;
   customerPincode?: string;
-  location?: {
-    lat: number;
-    lng: number;
-    address?: string;
-  };
   items: {
     productId: string;
     name: string;

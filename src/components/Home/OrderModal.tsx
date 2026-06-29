@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, ShoppingBag, Trash2, Plus, Minus, CheckCircle2, Mail, Phone, User, MapPin, Hash } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, CheckCircle2, Mail, Phone, User, MapPin, Hash, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CartItem, Order } from '../../types';
 import { formatPrice, formatQuantityUnit } from '../../lib/utils';
-import { collection, addDoc } from 'firebase/firestore';
+import QuantitySelector from './QuantitySelector';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 
 interface OrderModalProps {
@@ -106,9 +107,22 @@ export default function OrderModal({
         })),
       };
 
+      // Generate 6-character random uppercase alphanumeric ID
+      const generateId = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+      
+      const customOrderId = generateId();
+
       // Add to Firestore
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      const fullOrder: Order = { ...orderData, id: docRef.id };
+      const docRef = doc(collection(db, 'orders'), customOrderId);
+      await setDoc(docRef, orderData);
+      const fullOrder: Order = { ...orderData, id: customOrderId };
 
       // Trigger server-side email dispatch
       try {
@@ -118,7 +132,7 @@ export default function OrderModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            orderId: docRef.id,
+            orderId: customOrderId,
             customerName: name,
             customerPhone: formattedPhone,
             customerAddress: address,
@@ -166,6 +180,90 @@ export default function OrderModal({
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  };
+
+  const generateBill = () => {
+    if (!placedOrder) return;
+
+    const itemsHtml = placedOrder.items.map(item => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name} ${item.quantityValue ? `(${item.quantityValue} ${item.quantityUnit || ''})` : ''}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">Rs. ${item.price}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">Rs. ${item.price * item.quantity}</td>
+      </tr>
+    `).join('');
+
+    const billHtml = `
+      <html>
+        <head>
+          <title>Raj Kirana Store - ${placedOrder.id || 'N/A'}</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 40px; }
+            .invoice-title { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+            .order-id { color: #666; margin-bottom: 20px; }
+            .details { display: flex; justify-content: space-between; margin-bottom: 30px; border-top: 2px solid #000; padding-top: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { text-align: left; padding: 12px 10px; background: #f8f9fa; border-bottom: 2px solid #ddd; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+            th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: center; }
+            th:nth-child(3), th:nth-child(4) { text-align: right; }
+            .total-row { font-weight: bold; font-size: 18px; }
+            .total-row td { padding: 15px 10px; border-top: 2px solid #000; }
+            .footer { text-align: center; color: #888; font-size: 12px; margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="invoice-title">Raj Kirana Store</div>
+            <div class="order-id">Order ID: ${placedOrder.id || 'N/A'}</div>
+          </div>
+          <div class="details">
+            <div>
+              <strong>Billed To:</strong><br/>
+              ${placedOrder.customerName}<br/>
+              ${placedOrder.customerPhone}<br/>
+              ${placedOrder.customerAddress}<br/>
+              ${placedOrder.customerPincode ? `PIN: ${placedOrder.customerPincode}` : ''}
+            </div>
+            <div style="text-align: right;">
+              <strong>Date:</strong><br/>
+              ${new Date().toLocaleDateString()}
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+              <tr class="total-row">
+                <td colspan="3" style="text-align: right;">Total Amount</td>
+                <td style="text-align: right;">Rs. ${placedOrder.totalPrice}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="footer">
+            Thank you for shopping with us!
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(billHtml);
+      printWindow.document.close();
+    }
   };
 
   if (!isOpen) return null;
@@ -262,35 +360,21 @@ export default function OrderModal({
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center border border-brand-border rounded-lg bg-gray-50 overflow-hidden">
-                              <button
-                                onClick={() =>
-                                  onUpdateQuantity(item.product.id, item.quantity - 1)
-                                }
-                                className="p-1 px-2.5 hover:bg-gray-100 text-brand-text text-sm font-bold"
-                              >
-                                <Minus className="w-3 h-3" />
-                              </button>
-                              <span className="text-xs font-bold text-brand-text px-1 min-w-[20px] text-center">
-                                {item.quantity}
-                              </span>
-                              <button
-                                onClick={() =>
-                                  onUpdateQuantity(item.product.id, item.quantity + 1)
-                                }
-                                className="p-1 px-2.5 hover:bg-gray-100 text-brand-text text-sm font-bold"
-                              >
-                                <Plus className="w-3 h-3" />
-                              </button>
+                          <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">
+                            <div className="w-24">
+                              <QuantitySelector
+                                label=""
+                                initialQuantity={item.quantity}
+                                onQuantityChange={(qty) => onUpdateQuantity(item.product.id, qty)}
+                              />
                             </div>
 
                             <button
                               onClick={() => onUpdateQuantity(item.product.id, 0)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-auto sm:ml-0"
                               title="Delete Item"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </div>
                         </div>
@@ -486,26 +570,34 @@ export default function OrderModal({
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 max-w-sm mx-auto">
+                <div className="flex flex-col gap-3 justify-center pt-4 max-w-sm mx-auto">
                   <button
-                    onClick={handleWhatsAppShare}
-                    className="flex-1 bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-sm shadow-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-display uppercase tracking-wider"
+                    onClick={generateBill}
+                    className="w-full bg-blue-600 text-white p-3.5 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-display uppercase tracking-wider"
                   >
-                    Send to WhatsApp
+                    <Download className="w-4 h-4" /> Download Bill
                   </button>
-                  <button
-                    onClick={() => {
-                      setStep('cart');
-                      setPlacedOrder(null);
-                      setName('');
-                      setPhone('');
-                      setAddress('');
-                      onClose();
-                    }}
-                    className="flex-1 bg-white border border-brand-border text-brand-text p-3.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-50 transition-colors uppercase tracking-wider"
-                  >
-                    Back to Store
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={handleWhatsAppShare}
+                      className="flex-1 bg-emerald-600 text-white p-3.5 rounded-xl font-bold text-sm shadow-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-display uppercase tracking-wider"
+                    >
+                      Send to WhatsApp
+                    </button>
+                    <button
+                      onClick={() => {
+                        setStep('cart');
+                        setPlacedOrder(null);
+                        setName('');
+                        setPhone('');
+                        setAddress('');
+                        onClose();
+                      }}
+                      className="flex-1 bg-white border border-brand-border text-brand-text p-3.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-50 transition-colors uppercase tracking-wider"
+                    >
+                      Back to Store
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

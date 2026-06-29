@@ -48,17 +48,17 @@ export default function OrderManager() {
     }
   };
 
-  const sendWhatsAppNotification = (order: Order, type: 'placed' | 'delivered' | 'custom') => {
+  const sendWhatsAppNotification = (order: Order, type: 'placed' | 'delivered' | 'custom' | 'bill') => {
     const cleanPhone = order.customerPhone.replace(/\D/g, '');
     const itemsText = order.items
-      .map((item) => `• *${item.name}* (${item.quantityValue || ''} ${item.quantityUnit || ''}) x ${item.quantity}`)
+      .map((item) => `• *${item.name}* (${item.quantityValue || ''} ${item.quantityUnit || ''}) x ${item.quantity} = ₹${item.quantity * item.price}`)
       .join('\n');
       
     let message = '';
     if (type === 'placed') {
       message = `*🛒 RAJ KIRANA STORE - ORDER RECEIVED*\n\n` +
         `Hello *${order.customerName}*,\n` +
-        `Thank you for your order! We have successfully received your order *#${order.id?.substring(0, 6).toUpperCase()}*.\n\n` +
+        `Thank you for your order! We have successfully received your order *#${order.id?.toUpperCase()}*.\n\n` +
         `*Items Ordered:*\n${itemsText}\n\n` +
         `*Total Price:* ₹${order.totalPrice}\n` +
         `*Address:* ${order.customerAddress}\n\n` +
@@ -66,13 +66,21 @@ export default function OrderManager() {
     } else if (type === 'delivered') {
       message = `*🚚 RAJ KIRANA STORE - ORDER DELIVERED*\n\n` +
         `Hello *${order.customerName}*,\n` +
-        `Great news! Your order *#${order.id?.substring(0, 6).toUpperCase()}* has been successfully delivered to your address.\n\n` +
+        `Great news! Your order *#${order.id?.toUpperCase()}* has been successfully delivered to your address.\n\n` +
         `Thank you for shopping with us! Please order again soon. 🙏`;
+    } else if (type === 'bill') {
+      message = `*🧾 RAJ KIRANA STORE - INVOICE*\n\n` +
+        `*Order ID:* #${order.id?.toUpperCase()}\n` +
+        `*Customer:* ${order.customerName}\n` +
+        `*Address:* ${order.customerAddress}\n\n` +
+        `*ITEMS:*\n${itemsText}\n\n` +
+        `*TOTAL AMOUNT:* ₹${order.totalPrice}\n\n` +
+        `Thank you for your order! 🙏`;
     } else {
-      message = `*💬 RAJ KIRANA STORE*\n\nHello *${order.customerName}*, regarding your order *#${order.id?.substring(0, 6).toUpperCase()}*: `;
+      message = `*💬 RAJ KIRANA STORE*\n\nHello *${order.customerName}*, regarding your order *#${order.id?.toUpperCase()}*: `;
     }
 
-    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/91${cleanPhone.length === 10 ? cleanPhone : cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
@@ -215,7 +223,7 @@ export default function OrderManager() {
 
                     <div className="flex items-center gap-2.5 shrink-0">
                       <span className="text-xs font-mono text-brand-muted bg-gray-50 border border-brand-border px-1.5 py-0.5 rounded hidden sm:inline">
-                        #{order.id?.substring(0, 6).toUpperCase()}
+                        #{order.id?.toUpperCase()}
                       </span>
                       <span className="text-sm font-black text-brand-accent">
                         {formatPrice(order.totalPrice)}
@@ -284,21 +292,6 @@ export default function OrderManager() {
                                 </span>
                               </div>
                             </div>
-
-                            {order.location && (
-                              <div className="pt-2">
-                                <a
-                                  href={`https://www.google.com/maps?q=${order.location.lat},${order.location.lng}`}
-                                  target="_blank"
-                                  referrerPolicy="no-referrer"
-                                  rel="noopener noreferrer"
-                                  className="bg-red-50 text-red-700 p-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 border border-red-200 hover:bg-red-100 transition-colors text-xs"
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                  View Delivery Route on Maps
-                                </a>
-                              </div>
-                            )}
                           </div>
 
                           {/* Right Panel: Ordered items table */}
@@ -359,6 +352,13 @@ export default function OrderManager() {
                               </div>
 
                               <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => sendWhatsAppNotification(order, 'bill')}
+                                  className="bg-brand-accent/10 text-brand-accent border border-brand-accent/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-accent/20 transition-colors flex items-center gap-1 cursor-pointer"
+                                  title="Send Bill/Invoice on WhatsApp"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5" /> Send Bill
+                                </button>
                                 {order.status === 'pending' ? (
                                   <>
                                     <button
