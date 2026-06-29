@@ -86,7 +86,10 @@ export default function OrderManager() {
   };
 
   const sendWhatsAppNotification = (order: Order, type: 'placed' | 'delivered' | 'custom' | 'bill') => {
-    const cleanPhone = order.customerPhone.replace(/\D/g, '');
+    let cleanPhone = order.customerPhone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('91') && cleanPhone.length > 10) {
+      cleanPhone = cleanPhone.substring(2);
+    }
     const itemsText = order.items
       .map((item) => `• *${item.name}* (${item.quantityValue || ''} ${item.quantityUnit || ''}) x ${item.quantity} = ₹${item.quantity * item.price}`)
       .join('\n');
