@@ -11,6 +11,8 @@ export default function OrderManager() {
   const [filter, setFilter] = useState<'pending' | 'completed' | 'cancelled' | 'all'>('pending');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,9 +44,44 @@ export default function OrderManager() {
     try {
       await deleteDoc(doc(db, 'orders', orderId));
       setConfirmDeleteId(null);
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderId));
     } catch (err) {
       console.error('Error deleting order: ', err);
       handleFirestoreError(err, OperationType.DELETE, `orders/${orderId}`);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const promises = selectedOrderIds.map(id => deleteDoc(doc(db, 'orders', id)));
+      await Promise.all(promises);
+      setSelectedOrderIds([]);
+      setConfirmBulkDelete(false);
+    } catch (err) {
+      console.error('Error bulk deleting orders: ', err);
+      handleFirestoreError(err, OperationType.DELETE, 'orders');
+    }
+  };
+
+  const handleToggleSelect = (orderId: string) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId) 
+        : [...prev, orderId]
+    );
+  };
+
+  const handleSelectAll = (filteredList: Order[]) => {
+    const filteredIds = filteredList.map(o => o.id!).filter(Boolean);
+    const allSelected = filteredIds.every(id => selectedOrderIds.includes(id));
+    
+    if (allSelected) {
+      setSelectedOrderIds(prev => prev.filter(id => !filteredIds.includes(id)));
+    } else {
+      setSelectedOrderIds(prev => {
+        const unique = new Set([...prev, ...filteredIds]);
+        return Array.from(unique);
+      });
     }
   };
 
@@ -174,6 +211,66 @@ export default function OrderManager() {
         </div>
       ) : (
         <div className="space-y-3">
+          {/* Bulk Action Bar */}
+          <div className="bg-white p-4 rounded-xl border border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.includes(o.id!))}
+                  onChange={() => handleSelectAll(filteredOrders)}
+                  className="w-4 h-4 text-brand-accent border-gray-300 rounded focus:ring-brand-accent cursor-pointer"
+                />
+                <span className="text-xs font-bold text-brand-text">Select All Current ({filteredOrders.length})</span>
+              </label>
+              
+              {selectedOrderIds.length > 0 && (
+                <span className="text-xs font-bold text-brand-muted bg-gray-100 px-2.5 py-0.5 rounded-full">
+                  {selectedOrderIds.length} Selected
+                </span>
+              )}
+            </div>
+
+            {selectedOrderIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                {confirmBulkDelete ? (
+                  <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 p-1 rounded-xl animate-fade-in">
+                    <span className="text-xs font-bold text-red-700 px-2">Confirm Bulk Delete?</span>
+                    <button
+                      onClick={handleBulkDelete}
+                      className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                      Yes, Delete ({selectedOrderIds.length})
+                    </button>
+                    <button
+                      onClick={() => setConfirmBulkDelete(false)}
+                      className="bg-white border border-brand-border text-brand-muted px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmBulkDelete(true)}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-500" /> Delete Selected ({selectedOrderIds.length})
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => {
+                    setSelectedOrderIds([]);
+                    setConfirmBulkDelete(false);
+                  }}
+                  className="bg-white border border-brand-border text-brand-muted px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
+          </div>
+
           <AnimatePresence mode="popLayout">
             {filteredOrders.map((order) => {
               const isExpanded = expandedOrderId === order.id;
@@ -188,6 +285,15 @@ export default function OrderManager() {
                   {/* Order Row Header */}
                   <div className="p-4 flex items-center justify-between gap-3 select-none">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Selection Checkbox for Bulk Actions */}
+                      <input
+                        type="checkbox"
+                        checked={selectedOrderIds.includes(order.id!)}
+                        onChange={() => handleToggleSelect(order.id!)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-brand-accent border-gray-300 rounded focus:ring-brand-accent cursor-pointer shrink-0"
+                      />
+
                       {/* Checkbox button to Place/Revert order */}
                       {order.status === 'pending' ? (
                         <button
@@ -230,6 +336,42 @@ export default function OrderManager() {
                       <span className="text-sm font-black text-brand-accent">
                         {formatPrice(order.totalPrice)}
                       </span>
+
+                      {/* Direct One by One Delete Option in outer row */}
+                      {confirmDeleteId === order.id ? (
+                        <div className="flex items-center gap-1 bg-red-50 border border-red-200 p-0.5 rounded-lg animate-fade-in shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteOrder(order.id!);
+                            }}
+                            className="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-black cursor-pointer hover:bg-red-700 transition-colors"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteId(null);
+                            }}
+                            className="bg-white border border-brand-border text-brand-muted px-1.5 py-1 rounded text-[10px] font-black cursor-pointer hover:bg-gray-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(order.id!);
+                          }}
+                          className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg text-brand-muted transition-colors cursor-pointer shrink-0"
+                          title="Delete Order"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
                       <button
                         onClick={() => toggleExpand(order.id!)}
                         className="p-1.5 hover:bg-gray-100 rounded-lg text-brand-muted transition-colors cursor-pointer"
