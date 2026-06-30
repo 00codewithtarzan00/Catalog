@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously, signInWithCredential } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import firebaseAppletConfig from '../firebase-applet-config.json';
 
@@ -30,6 +30,11 @@ export const loginWithGoogle = async () => {
     console.error('Error logging in with Google:', error);
     throw error;
   }
+};
+
+export const loginWithGoogleGIS = async (idToken: string) => {
+  const credential = GoogleAuthProvider.credential(idToken);
+  return signInWithCredential(auth, credential);
 };
 
 export const loginAnonymously = async () => {
