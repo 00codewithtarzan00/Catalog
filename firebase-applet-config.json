@@ -3,7 +3,7 @@
   "appId": "1:521880282780:web:fa3a00b4040f9742162f59",
   "apiKey": "AIzaSyAU9GQnppOKNZAt-qERFELlMgbQljxRHeM",
   "authDomain": "helical-sunbeam-7tgzl.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-7d3249c8-fa62-4f7e-8603-1359bbf15f5d",
+  "firestoreDatabaseId": "(default)",
   "storageBucket": "helical-sunbeam-7tgzl.firebasestorage.app",
   "messagingSenderId": "521880282780",
   "measurementId": ""

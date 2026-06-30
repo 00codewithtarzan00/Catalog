@@ -18,11 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const databaseId = metaEnv.VITE_FIREBASE_DATABASE_ID || firebaseAppletConfig.firestoreDatabaseId;
 
-// Use (default) or problematic ID as undefined to ensure it connects to the default database
-const finalDatabaseId = (databaseId === "(default)" || databaseId === "ai-studio-7d3249c8-fa62-4f7e-8603-1359bbf15f5d") ? undefined : databaseId;
-console.log('Using Firestore Database ID:', finalDatabaseId);
-
-export const db = finalDatabaseId ? getFirestore(app, finalDatabaseId) : getFirestore(app);
+export const db = databaseId && databaseId !== "(default)" ? getFirestore(app, databaseId) : getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
