@@ -6,7 +6,8 @@ import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import QuantitySelector from './QuantitySelector';
 import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { db, handleFirestoreError, OperationType, auth, loginWithGoogle, loginAnonymously } from '../../firebase';
+import { db, handleFirestoreError, OperationType, auth, loginWithGoogle } from '../../firebase';
+import firebaseAppletConfig from '../../../firebase-applet-config.json';
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export default function OrderModal({
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; address?: string }>({});
   const [validationMsg, setValidationMsg] = useState<string | null>(null);
   const [shakeTrigger, setShakeTrigger] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<React.ReactNode | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
@@ -109,8 +110,12 @@ export default function OrderModal({
     try {
       await loginWithGoogle();
     } catch (err: any) {
-      console.error('Google Sign-in failed in modal:', err);
       const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        console.warn('Google Sign-in popup closed/cancelled in modal:', err);
+      } else {
+        console.error('Google Sign-in failed in modal:', err);
+      }
       if (code === 'auth/popup-closed-by-user') {
         setLoginError(
           'लॉगिन विंडो बंद कर दी गई थी। कृपया सुनिश्चित करें कि आपका ब्राउज़र पॉपअप को ब्लॉक नहीं कर रहा है। यदि समस्या बनी रहती है, तो ऊपर "Open in New Tab" बटन पर क्लिक करके स्टोर को नए टैब में खोलें और फिर से आर्डर करें!'
@@ -119,24 +124,45 @@ export default function OrderModal({
         setLoginError(
           'आपके ब्राउज़र ने पॉपअप विंडो को ब्लॉक कर दिया है। कृपया पॉपअप को अनुमति दें (Allow Popups) या इस वेबसाइट को नए टैब में खोलकर फिर से प्रयास करें।'
         );
+      } else if (code === 'auth/unauthorized-domain') {
+        const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'your-domain';
+        const consoleLink = `https://console.firebase.google.com/project/${firebaseAppletConfig.projectId}/authentication/settings`;
+        setLoginError(
+          <div className="space-y-3">
+            <p className="font-extrabold text-amber-950 text-xs">Unauthorized Domain / अनधिकृत डोमेन:</p>
+            <p className="text-[11px] leading-relaxed text-amber-900 font-semibold">
+              यह वेबसाइट डोमेन (<code className="bg-amber-100/80 px-1 py-0.5 rounded font-mono text-red-700 font-bold">{currentHostname}</code>) आपके Firebase प्रोजेक्ट में अधिकृत (Authorized) नहीं है।
+            </p>
+            <div className="bg-white/95 border border-amber-200/80 p-3 rounded-xl space-y-2 text-[11px] text-gray-800 shadow-sm">
+              <p className="font-bold text-amber-950">इसे ठीक करने के चरण (Steps to fix):</p>
+              <ol className="list-decimal list-inside space-y-1 text-left text-gray-700 font-medium">
+                <li>
+                  अपने Firebase कंसोल पर जाएं:{' '}
+                  <a href={consoleLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-extrabold break-all inline-flex items-center gap-0.5">
+                    यहाँ क्लिक करें ↗
+                  </a>
+                </li>
+                <li>
+                  <strong>Authorized domains</strong> (अधिकृत डोमेन) सेक्शन तक स्क्रॉल करें।
+                </li>
+                <li>
+                  <strong>Add domain</strong> पर क्लिक करें।
+                </li>
+                <li>
+                  इनपुट फ़ील्ड में <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-blue-700 font-extrabold break-all">{currentHostname}</code> डालें और <strong>Add</strong> पर क्लिक करें।
+                </li>
+              </ol>
+            </div>
+            <p className="text-[11px] font-semibold text-amber-900 leading-relaxed">
+              💡 <strong>त्वरित समाधान (Quick Option):</strong> आप नीचे दिए गए <strong>Guest Sign-in (अतिथि लॉगिन)</strong> विकल्प का उपयोग करके तुरंत बिना किसी सेटअप के आगे बढ़ सकते हैं!
+            </p>
+          </div>
+        );
       } else {
         setLoginError(
           `लॉगिन असफल रहा: ${err?.message || 'अज्ञात त्रुटि'}। कृपया ऊपर "Open in New Tab" पर क्लिक करें ताकि कोई ब्राउज़र सुरक्षा प्रतिबंध लॉगिन में बाधा न डाले।`
         );
       }
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleGuestLogin = async () => {
-    setIsLoggingIn(true);
-    setLoginError(null);
-    try {
-      await loginAnonymously();
-    } catch (err: any) {
-      console.error('Guest Sign-in failed:', err);
-      setLoginError(`अतिथि लॉगिन विफल रहा: ${err?.message || 'अज्ञात त्रुटि'}`);
     } finally {
       setIsLoggingIn(false);
     }
@@ -540,9 +566,9 @@ export default function OrderModal({
                           <span className="shrink-0 bg-amber-100 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center font-black text-xs">!</span>
                           <div className="space-y-1">
                             <p className="font-extrabold text-amber-950">लॉगिन समस्या (Popup Warning):</p>
-                            <p className="font-semibold leading-relaxed text-amber-800">
+                            <div className="font-semibold leading-relaxed text-amber-800">
                               {loginError}
-                            </p>
+                            </div>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-amber-200/50 flex flex-col sm:flex-row gap-2 justify-between items-center">
@@ -602,16 +628,6 @@ export default function OrderModal({
                             <span className="font-extrabold">Login with Google to Checkout / लॉगिन करें</span>
                           </>
                         )}
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isLoggingIn}
-                        onClick={handleGuestLogin}
-                        className="w-full bg-brand-accent/10 hover:bg-brand-accent/15 text-brand-accent border border-brand-accent/20 py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2.5 shadow-sm transition-all cursor-pointer text-sm hover:border-brand-accent/30 active:scale-98 disabled:opacity-50"
-                      >
-                        <span className="text-base">🛡️</span>
-                        <span className="font-extrabold">Continue as Guest (No Popups) / बिना लॉगिन (डेमो) आगे बढ़ें</span>
                       </button>
                     </div>
                   </div>

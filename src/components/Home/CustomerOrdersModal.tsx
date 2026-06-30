@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { auth, loginWithGoogle, loginAnonymously, logout, db } from '../../firebase';
+import { auth, loginWithGoogle, logout, db } from '../../firebase';
+import firebaseAppletConfig from '../../../firebase-applet-config.json';
 import { Order } from '../../types';
 import { formatPrice } from '../../lib/utils';
 
@@ -31,7 +32,7 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<React.ReactNode | null>(null);
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
   // Monitor auth state changes reactive
@@ -85,8 +86,12 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
     try {
       await loginWithGoogle();
     } catch (err: any) {
-      console.error('Login failed:', err);
       const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        console.warn('Login popup closed/cancelled by user:', err);
+      } else {
+        console.error('Login failed:', err);
+      }
       if (code === 'auth/popup-closed-by-user') {
         setLoginError(
           'लॉगिन विंडो बंद कर दी गई थी। कृपया सुनिश्चित करें कि आपका ब्राउज़र पॉपअप को ब्लॉक नहीं कर रहा है।'
@@ -95,22 +100,43 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
         setLoginError(
           'आपके ब्राउज़र ने पॉपअप विंडो को ब्लॉक कर दिया है। कृपया पॉपअप को अनुमति दें या नीचे "बिना लॉगिन आगे बढ़ें" का उपयोग करें।'
         );
+      } else if (code === 'auth/unauthorized-domain') {
+        const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'your-domain';
+        const consoleLink = `https://console.firebase.google.com/project/${firebaseAppletConfig.projectId}/authentication/settings`;
+        setLoginError(
+          <div className="space-y-3">
+            <p className="font-extrabold text-amber-950 text-xs">Unauthorized Domain / अनधिकृत डोमेन:</p>
+            <p className="text-[11px] leading-relaxed text-amber-900 font-semibold">
+              यह वेबसाइट डोमेन (<code className="bg-amber-100/80 px-1 py-0.5 rounded font-mono text-red-700 font-bold">{currentHostname}</code>) आपके Firebase प्रोजेक्ट में अधिकृत (Authorized) नहीं है।
+            </p>
+            <div className="bg-white/95 border border-amber-200/80 p-3 rounded-xl space-y-2 text-[11px] text-gray-800 shadow-sm">
+              <p className="font-bold text-amber-950">इसे ठीक करने के चरण (Steps to fix):</p>
+              <ol className="list-decimal list-inside space-y-1 text-left text-gray-700 font-medium">
+                <li>
+                  अपने Firebase कंसोल पर जाएं:{' '}
+                  <a href={consoleLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-extrabold break-all inline-flex items-center gap-0.5">
+                    यहाँ क्लिक करें ↗
+                  </a>
+                </li>
+                <li>
+                  <strong>Authorized domains</strong> (अधिकृत डोमेन) सेक्शन तक स्क्रॉल करें।
+                </li>
+                <li>
+                  <strong>Add domain</strong> पर क्लिक करें।
+                </li>
+                <li>
+                  इनपुट फ़ील्ड में <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-blue-700 font-extrabold break-all">{currentHostname}</code> डालें और <strong>Add</strong> पर क्लिक करें।
+                </li>
+              </ol>
+            </div>
+            <p className="text-[11px] font-semibold text-amber-900 leading-relaxed">
+              💡 <strong>त्वरित समाधान (Quick Option):</strong> आप नीचे दिए गए <strong>Guest Tracking (अतिथि लॉगिन)</strong> विकल्प का उपयोग करके तुरंत बिना किसी सेटअप के आगे बढ़ सकते हैं!
+            </p>
+          </div>
+        );
       } else {
         setLoginError(`लॉगिन असफल रहा: ${err?.message || 'अज्ञात त्रुटि'}`);
       }
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  const handleGuestLogin = async () => {
-    setLoginLoading(true);
-    setLoginError(null);
-    try {
-      await loginAnonymously();
-    } catch (err: any) {
-      console.error('Guest Sign-in failed:', err);
-      setLoginError(`अतिथि लॉगिन विफल रहा: ${err?.message || 'अज्ञात त्रुटि'}`);
     } finally {
       setLoginLoading(false);
     }
@@ -266,9 +292,9 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
                       <span className="shrink-0 bg-amber-100 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center font-black text-xs">!</span>
                       <div className="space-y-0.5">
                         <p className="font-extrabold text-amber-950">लॉगिन चेतावनी / Popup Message:</p>
-                        <p className="font-semibold leading-relaxed text-amber-800 text-[11px]">
+                        <div className="font-semibold leading-relaxed text-amber-800 text-[11px]">
                           {loginError}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -301,17 +327,9 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
                     <span>{loginLoading ? 'लॉगिन हो रहा है...' : 'Login with Google / गूगल लॉगिन'}</span>
                   </button>
 
-                  <button
-                    onClick={handleGuestLogin}
-                    disabled={loginLoading}
-                    className="w-full bg-brand-accent/10 border border-brand-accent/20 text-brand-accent py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:bg-brand-accent/15 transition-colors flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
-                  >
-                    <span>🛡️</span>
-                    <span>Continue as Guest (No Popups) / बिना लॉगिन ट्रैक करें</span>
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
+              ) : (
               /* ORDER LISTING FOR USER */
               <div className="space-y-4 animate-fade-in">
                 {/* User Card */}
