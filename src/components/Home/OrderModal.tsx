@@ -49,31 +49,14 @@ export default function OrderModal({
       return '';
     }
   });
-  const [pincode, setPincode] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rk_customer_profile');
-      return saved ? JSON.parse(saved).pincode || '' : '';
-    } catch {
-      return '';
-    }
-  });
 
   const [loading, setLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
-  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; address?: string; pincode?: string }>({});
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; address?: string }>({});
   const [validationMsg, setValidationMsg] = useState<string | null>(null);
   const [shakeTrigger, setShakeTrigger] = useState(false);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-
-  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setPincode(val);
-    setFormErrors(prev => ({ ...prev, pincode: undefined }));
-    if (val.length === 6) {
-      setValidationMsg(null);
-    }
-  };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -88,7 +71,7 @@ export default function OrderModal({
     e.preventDefault();
     setValidationMsg(null);
     
-    const errors: { name?: string; phone?: string; address?: string; pincode?: string } = {};
+    const errors: { name?: string; phone?: string; address?: string } = {};
     if (!name.trim()) {
       errors.name = 'नाम डालना आवश्यक है / Name is required';
     }
@@ -103,14 +86,6 @@ export default function OrderModal({
     if (!address.trim()) {
       errors.address = 'डिलिवरी पता डालना आवश्यक है / Delivery address is required';
     }
-    if (!pincode.trim()) {
-      errors.pincode = 'पिन कोड डालना आवश्यक है / PIN code is required';
-    } else {
-      const pinRegex = /^[0-9]{6}$/;
-      if (!pinRegex.test(pincode.trim())) {
-        errors.pincode = 'कृपया 6 अंकों का सही पिन कोड डालें / Please enter a valid 6-digit PIN code';
-      }
-    }
 
     setFormErrors(errors);
 
@@ -122,12 +97,11 @@ export default function OrderModal({
       if (!name.trim()) missedFields.push('नाम (Name)');
       if (!phone.trim()) missedFields.push('फ़ोन नंबर (Phone Number)');
       if (!address.trim()) missedFields.push('डिलिवरी पता (Delivery Address)');
-      if (!pincode.trim()) missedFields.push('पिन कोड (PIN Code)');
 
       if (missedFields.length > 0) {
         setValidationMsg(`कृपया सभी आवश्यक जानकारी भरें: ${missedFields.join(', ')}`);
       } else {
-        setValidationMsg('कृपया दर्ज की गई जानकारी को सही करें (फ़ोन या पिन कोड सही नहीं है)');
+        setValidationMsg('कृपया दर्ज की गई जानकारी को सही करें (फ़ोन नंबर सही नहीं है)');
       }
       return;
     }
@@ -139,7 +113,6 @@ export default function OrderModal({
         customerName: name,
         customerPhone: formattedPhone,
         customerAddress: address,
-        customerPincode: pincode,
         status: 'pending',
         createdAt: Date.now(),
         totalPrice: subtotal,
@@ -155,7 +128,7 @@ export default function OrderModal({
 
       // Save customer profile details for next time (superfast checkout!)
       try {
-        localStorage.setItem('rk_customer_profile', JSON.stringify({ name, phone, address, pincode }));
+        localStorage.setItem('rk_customer_profile', JSON.stringify({ name, phone, address }));
       } catch (storageErr) {
         console.error('Failed to save user profile locally:', storageErr);
       }
@@ -189,7 +162,6 @@ export default function OrderModal({
             customerName: name,
             customerPhone: formattedPhone,
             customerAddress: address,
-            customerPincode: pincode,
             totalPrice: subtotal,
             items: orderData.items,
           }),
@@ -219,7 +191,7 @@ export default function OrderModal({
       )
       .join('\n');
 
-    const pincodeText = placedOrder.customerPincode ? `*PIN Code:* ${placedOrder.customerPincode}\n` : '';
+    const pincodeText = '';
     const invoiceUrl = `${window.location.origin}/#/invoice/${placedOrder.id}`;
 
     const message = `*🛒 RAJ KIRANA STORE - NEW ORDER*\n\n` +
@@ -529,30 +501,6 @@ export default function OrderModal({
                           <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.address}</p>
                         )}
                       </div>
-
-                      <div className="space-y-1.5">
-                        <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.pincode ? 'text-red-500' : 'text-brand-muted'}`}>
-                          <Hash className={`w-3.5 h-3.5 ${formErrors.pincode ? 'text-red-500' : 'text-brand-accent'}`} />
-                          PIN Code / पिन कोड <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          maxLength={6}
-                          value={pincode}
-                          onChange={handlePincodeChange}
-                          placeholder="6-digit PIN"
-                          pattern="[0-9]{6}"
-                          className={`w-full bg-gray-50 border rounded-xl p-3 text-sm focus:outline-none transition-all font-semibold sm:h-[62px] ${
-                            formErrors.pincode 
-                              ? 'border-red-500 focus:border-red-500 bg-red-50/20' 
-                              : 'border-brand-border focus:border-brand-accent focus:bg-white'
-                          }`}
-                        />
-                        {formErrors.pincode && (
-                          <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.pincode}</p>
-                        )}
-                      </div>
                     </div>
                   </form>
                 </div>
@@ -641,12 +589,7 @@ export default function OrderModal({
                         {placedOrder.customerAddress}
                       </span>
                     </p>
-                    {placedOrder.customerPincode && (
-                      <p className="flex justify-between">
-                        <span className="text-brand-muted font-bold">PIN Code:</span>
-                        <span className="font-extrabold">{placedOrder.customerPincode}</span>
-                      </p>
-                    )}
+{/* No PIN Code needed in receipt */}
                     <div className="border-t border-brand-border pt-2 flex justify-between items-center">
                       <span className="font-bold text-brand-muted">Total Amount Paid:</span>
                       <span className="text-base font-display font-black text-brand-accent">
