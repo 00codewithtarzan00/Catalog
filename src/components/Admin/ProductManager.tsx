@@ -59,7 +59,11 @@ export default function ProductManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentProduct?.name || !currentProduct?.price || !currentProduct?.category) return;
+    console.log('Current product state:', currentProduct);
+    if (!currentProduct?.name || !currentProduct?.price || !currentProduct?.category) {
+      console.error('Validation failed: Missing name, price, or category', currentProduct);
+      return;
+    }
 
     try {
       const data = {
@@ -77,14 +81,18 @@ export default function ProductManager() {
         available: currentProduct.available ?? true,
       };
 
+      console.log('Data to save:', data);
+
       if (currentProduct.id) {
         await updateDoc(doc(db, 'products', currentProduct.id), data);
       } else {
         await addDoc(collection(db, 'products'), data);
       }
+      console.log('Successfully saved product');
       setIsEditing(false);
       setCurrentProduct(null);
     } catch (err) {
+      console.error('Save failed:', err);
       handleFirestoreError(err, OperationType.WRITE, 'products');
     }
   };
