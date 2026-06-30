@@ -63,9 +63,12 @@ export default function ProductManager() {
 
     try {
       const data = {
-        ...currentProduct,
+        name: currentProduct.name,
         price: Number(currentProduct.price),
         mrp: Number(currentProduct.mrp || currentProduct.price),
+        description: currentProduct.description || "",
+        category: currentProduct.category,
+        imageUrl: currentProduct.imageUrl || "",
         isSpecial: false,
         showQuantity: currentProduct.showQuantity || false,
         quantityValue: currentProduct.showQuantity ? Number(currentProduct.quantityValue || 1) : null as any,
