@@ -1,10 +1,9 @@
 {
-  "projectId": "helical-sunbeam-7tgzl",
-  "appId": "1:521880282780:web:fa3a00b4040f9742162f59",
-  "apiKey": "AIzaSyAU9GQnppOKNZAt-qERFELlMgbQljxRHeM",
-  "authDomain": "helical-sunbeam-7tgzl.firebaseapp.com",
+  "projectId": "rajkirana-store",
+  "appId": "1:637628930014:web:08d0b8b3cc9051bbad6f4f",
+  "apiKey": "AIzaSyCUzBFlzfBrALpAjzTARxA6oi9edWQEswY",
+  "authDomain": "rajkirana-store.firebaseapp.com",
   "firestoreDatabaseId": "(default)",
-  "storageBucket": "helical-sunbeam-7tgzl.firebasestorage.app",
-  "messagingSenderId": "521880282780",
-  "measurementId": ""
+  "storageBucket": "rajkirana-store.firebasestorage.app",
+  "messagingSenderId": "637628930014"
 }
