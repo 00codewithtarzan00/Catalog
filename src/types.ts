@@ -76,4 +76,6 @@ export interface Order {
   totalPrice: number;
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: number;
+  customerUid?: string | null;
+  customerEmail?: string | null;
 }

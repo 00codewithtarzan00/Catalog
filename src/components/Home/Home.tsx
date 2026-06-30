@@ -7,6 +7,7 @@ import Navbar from './Navbar';
 import ProductCard from './ProductCard';
 import ProductFeedLayouts from './ProductFeedLayouts';
 import OrderModal from './OrderModal';
+import CustomerOrdersModal from './CustomerOrdersModal';
 import QuantitySelector from './QuantitySelector';
 import { formatPrice, formatQuantityUnit, cleanCategoryName } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -385,6 +386,7 @@ export default function Home({ config }: HomeProps) {
     }
   });
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isCustomerOrdersOpen, setIsCustomerOrdersOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('rk_cart', JSON.stringify(cartItems));
@@ -609,7 +611,7 @@ export default function Home({ config }: HomeProps) {
 
   return (
     <div className={`min-h-screen flex flex-col ${selectedProduct ? 'overflow-hidden' : ''}`}>
-      <Navbar onSearch={setSearchQuery} config={config} />
+      <Navbar onSearch={setSearchQuery} config={config} onOpenOrders={() => setIsCustomerOrdersOpen(true)} />
 
       {/* Banner Section (Top Banner) */}
       {renderBanner(
@@ -875,6 +877,12 @@ export default function Home({ config }: HomeProps) {
         cartItems={cartItems}
         onUpdateQuantity={updateCartQuantity}
         onClearCart={clearCart}
+      />
+
+      {/* Customer Tracking Drawer */}
+      <CustomerOrdersModal
+        isOpen={isCustomerOrdersOpen}
+        onClose={() => setIsCustomerOrdersOpen(false)}
       />
 
       <footer className="border-t border-brand-border py-10 px-6 text-center text-xs text-brand-muted uppercase tracking-[0.2em]">

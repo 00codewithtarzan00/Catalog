@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Trash2, Plus, Minus, CheckCircle2, Mail, Phone, User, MapPin, Hash, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CartItem, Order } from '../../types';
 import { formatPrice, formatQuantityUnit } from '../../lib/utils';
 import QuantitySelector from './QuantitySelector';
-import { collection, doc, setDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../../firebase';
+import { collection, doc, setDoc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { db, handleFirestoreError, OperationType, auth, loginWithGoogle } from '../../firebase';
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -23,32 +24,74 @@ export default function OrderModal({
   onClearCart,
 }: OrderModalProps) {
   const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   
   // Auto-fill customer profile for superfast checkout
-  const [name, setName] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rk_customer_profile');
-      return saved ? JSON.parse(saved).name || '' : '';
-    } catch {
-      return '';
-    }
-  });
-  const [phone, setPhone] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rk_customer_profile');
-      return saved ? JSON.parse(saved).phone || '' : '';
-    } catch {
-      return '';
-    }
-  });
-  const [address, setAddress] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rk_customer_profile');
-      return saved ? JSON.parse(saved).address || '' : '';
-    } catch {
-      return '';
-    }
-  });
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+
+  // Load and auto-fill customer profile on auth change
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Fetch from Firestore
+        try {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.name) setName(data.name);
+            if (data.phone) setPhone(data.phone);
+            if (data.address) setAddress(data.address);
+          } else {
+            // Fallback to local storage if present, otherwise default name
+            try {
+              const saved = localStorage.getItem('rk_customer_profile');
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.name) setName(parsed.name);
+                if (parsed.phone) setPhone(parsed.phone);
+                if (parsed.address) setAddress(parsed.address);
+              } else if (currentUser.displayName) {
+                setName(currentUser.displayName);
+              }
+            } catch (localErr) {
+              if (currentUser.displayName) {
+                setName(currentUser.displayName);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching profile from Firestore:', err);
+          if (currentUser.displayName) {
+            setName(currentUser.displayName);
+          }
+        }
+      } else {
+        // If logged out, reset fields to local storage or blank
+        try {
+          const saved = localStorage.getItem('rk_customer_profile');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setName(parsed.name || '');
+            setPhone(parsed.phone || '');
+            setAddress(parsed.address || '');
+          } else {
+            setName('');
+            setPhone('');
+            setAddress('');
+          }
+        } catch {
+          setName('');
+          setPhone('');
+          setAddress('');
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
@@ -109,7 +152,7 @@ export default function OrderModal({
     setLoading(true);
     try {
       const formattedPhone = phone.trim().startsWith('+91') ? phone.trim() : `+91${phone.trim()}`;
-      const orderData: Omit<Order, 'id'> = {
+      const orderData: any = {
         customerName: name,
         customerPhone: formattedPhone,
         customerAddress: address,
@@ -124,13 +167,24 @@ export default function OrderModal({
           quantityValue: item.product.quantityValue,
           quantityUnit: item.product.quantityUnit,
         })),
+        customerUid: user?.uid || null,
+        customerEmail: user?.email || null,
       };
 
       // Save customer profile details for next time (superfast checkout!)
       try {
         localStorage.setItem('rk_customer_profile', JSON.stringify({ name, phone, address }));
+        if (user) {
+          const userDocRef = doc(db, 'users', user.uid);
+          await setDoc(userDocRef, {
+            name,
+            phone,
+            address,
+            updatedAt: Date.now()
+          }, { merge: true });
+        }
       } catch (storageErr) {
-        console.error('Failed to save user profile locally:', storageErr);
+        console.error('Failed to save user profile:', storageErr);
       }
 
       // Generate 6-character random uppercase alphanumeric ID
@@ -391,167 +445,237 @@ export default function OrderModal({
 
             {step === 'checkout' && (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {/* Form column */}
-                <div className={`md:col-span-3 space-y-4 ${shakeTrigger ? 'animate-bounce' : ''}`}>
-                  <h4 className="font-black text-xs uppercase tracking-wider text-brand-muted border-b border-brand-border pb-1">
-                    📍 Delivery details / पता विवरण
-                  </h4>
+                {!user ? (
+                  /* SECURE GOOGLE LOGIN WALL */
+                  <div className="col-span-5 bg-white border border-brand-border rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-sm max-w-xl mx-auto my-4 animate-fade-in">
+                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
 
-                  {validationMsg && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -5 }} 
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                    <div className="space-y-2">
+                      <h3 className="font-display font-black text-lg md:text-xl text-brand-text uppercase tracking-wide">
+                        गूगल लॉगिन करना अनिवार्य है
+                      </h3>
+                      <p className="text-xs text-brand-muted font-bold leading-relaxed max-w-md mx-auto">
+                        सुरक्षा और प्रमाणिकता (Security & Verification) के लिए सभी ऑर्डर्स के लिए Google Login आवश्यक है। इससे आपका ऑर्डर सुरक्षित रहेगा और बार-बार पता नहीं भरना पड़ेगा।
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 border border-brand-border rounded-2xl p-4 text-left space-y-3">
+                      <p className="text-[10px] uppercase font-black text-brand-accent tracking-wider">
+                        🛡️ सुरक्षा और सुविधा के फायदे / Key Benefits
+                      </p>
+                      <ul className="space-y-2 text-[11px] font-bold text-brand-muted">
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600">✓</span>
+                          <span><strong>1-Click Google Sign-in:</strong> बिना पासवर्ड अत्यंत सुरक्षित लॉगिन।</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600">✓</span>
+                          <span><strong>No Repeat Typing:</strong> आपका नाम, फ़ोन और पता सुरक्षित सहेजा जाएगा।</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-600">✓</span>
+                          <span><strong>Live Tracking & Bills:</strong> अपने सभी वर्तमान और पुराने ऑर्डर की रसीदें ट्रैक करें।</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await loginWithGoogle();
+                        } catch (err) {
+                          console.error('Google Sign-in failed:', err);
+                        }
+                      }}
+                      className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-md transition-all cursor-pointer text-sm hover:border-gray-400 active:scale-98"
                     >
-                      <span className="shrink-0 bg-red-100 text-red-700 w-4 h-4 rounded-full flex items-center justify-center text-[10px]">!</span>
-                      <span>{validationMsg}</span>
-                    </motion.div>
-                  )}
-
-                  <form onSubmit={handlePlaceOrder} className="space-y-4 text-brand-text">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Name field */}
-                      <div className="space-y-1.5">
-                        <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.name ? 'text-red-500' : 'text-brand-muted'}`}>
-                          <User className={`w-3.5 h-3.5 ${formErrors.name ? 'text-red-500' : 'text-brand-accent'}`} />
-                          Your Name / नाम <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={name}
-                          onChange={(e) => {
-                            setName(e.target.value);
-                            if (formErrors.name) {
-                              setFormErrors(prev => ({ ...prev, name: undefined }));
-                            }
-                          }}
-                          placeholder="Enter your full name"
-                          className={`w-full bg-gray-50 border rounded-xl p-3 text-sm focus:outline-none transition-all font-semibold ${
-                            formErrors.name 
-                              ? 'border-red-500 focus:border-red-500 bg-red-50/20' 
-                              : 'border-brand-border focus:border-brand-accent focus:bg-white'
-                          }`}
-                        />
-                        {formErrors.name && (
-                          <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.name}</p>
-                        )}
-                      </div>
-
-                      {/* Phone field */}
-                      <div className="space-y-1.5">
-                        <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.phone ? 'text-red-500' : 'text-brand-muted'}`}>
-                          <Phone className={`w-3.5 h-3.5 ${formErrors.phone ? 'text-red-500' : 'text-brand-accent'}`} />
-                          Phone Number / फ़ोन <span className="text-red-500">*</span>
-                        </label>
-                        <div className={`flex bg-gray-50 border rounded-xl overflow-hidden transition-all ${
-                          formErrors.phone 
-                            ? 'border-red-500 focus-within:border-red-500 bg-red-50/20' 
-                            : 'border-brand-border focus-within:border-brand-accent focus-within:bg-white'
-                        }`}>
-                          <span className={`flex items-center justify-center border-r px-3 text-xs font-black select-none ${
-                            formErrors.phone ? 'bg-red-50 border-red-500 text-red-500' : 'bg-gray-100 border-brand-border text-brand-muted'
-                          }`}>
-                            +91
-                          </span>
-                          <input
-                            type="tel"
-                            required
-                            value={phone}
-                            onChange={handlePhoneChange}
-                            placeholder="10-digit mobile number"
-                            pattern="[0-9]{10}"
-                            className="w-full p-3 text-sm focus:outline-none bg-transparent font-semibold"
-                          />
-                          {phone.length === 10 && !formErrors.phone && (
-                            <span className="flex items-center pr-3 text-green-600 font-bold">✓</span>
-                          )}
-                        </div>
-                        {formErrors.phone && (
-                          <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.phone}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Manual Address & Pincode Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-2 space-y-1.5">
-                        <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.address ? 'text-red-500' : 'text-brand-muted'}`}>
-                          <MapPin className={`w-3.5 h-3.5 ${formErrors.address ? 'text-red-500' : 'text-brand-accent'}`} />
-                          Delivery Address / पूरा पता <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          required
-                          value={address}
-                          onChange={(e) => {
-                            setAddress(e.target.value);
-                            if (formErrors.address) {
-                              setFormErrors(prev => ({ ...prev, address: undefined }));
-                            }
-                          }}
-                          placeholder="House No., Street name, landmarks, colony, town details..."
-                          rows={2}
-                          className={`w-full bg-gray-50 border rounded-xl p-3 text-sm focus:outline-none transition-all font-semibold ${
-                            formErrors.address 
-                              ? 'border-red-500 focus:border-red-500 bg-red-50/20' 
-                              : 'border-brand-border focus:border-brand-accent focus:bg-white'
-                          }`}
-                        />
-                        {formErrors.address && (
-                          <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.address}</p>
-                        )}
-                      </div>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Modern Side Summary column */}
-                <div className="md:col-span-2 bg-gray-50 border border-brand-border rounded-2xl p-4 self-start space-y-4 shadow-sm">
-                  <div>
-                    <h5 className="font-black text-xs uppercase tracking-wider text-brand-muted border-b border-brand-border/60 pb-1.5 mb-2.5">
-                      Order Summary ({cartItems.length} items)
-                    </h5>
-                    
-                    {/* Compact Item List */}
-                    <div className="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
-                      {cartItems.map((item) => (
-                        <div key={item.product.id} className="flex justify-between items-center gap-1.5">
-                          <span className="font-bold text-brand-text truncate max-w-[130px]">
-                            {item.product.name}
-                          </span>
-                          <span className="text-brand-muted font-semibold shrink-0 text-[11px]">
-                            x{item.quantity}
-                          </span>
-                          <span className="font-extrabold text-brand-accent ml-auto shrink-0">
-                            {formatPrice(item.product.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                      <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span className="font-extrabold">Login with Google to Checkout / लॉगिन करें</span>
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    {/* Form column */}
+                    <div className={`md:col-span-3 space-y-4 ${shakeTrigger ? 'animate-bounce' : ''}`}>
+                      <h4 className="font-black text-xs uppercase tracking-wider text-brand-muted border-b border-brand-border pb-1">
+                        📍 Delivery details / पता विवरण
+                      </h4>
 
-                  <div className="border-t border-brand-border/60 pt-3 space-y-2 text-xs">
-                    <div className="flex justify-between items-center font-bold">
-                      <span className="text-brand-muted">Subtotal</span>
-                      <span className="text-brand-text">{formatPrice(subtotal)}</span>
+                      <div className="bg-green-50 border border-green-200 text-green-800 px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between shadow-sm animate-fade-in">
+                        <span className="flex items-center gap-1.5 min-w-0">
+                          <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                          <span className="truncate">लॉगइन: <strong className="text-brand-accent">{user.displayName || user.email}</strong></span>
+                        </span>
+                        <span className="text-[10px] uppercase font-black text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">Verified Google Acc</span>
+                      </div>
+
+                      {validationMsg && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: -5 }} 
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"
+                        >
+                          <span className="shrink-0 bg-red-100 text-red-700 w-4 h-4 rounded-full flex items-center justify-center text-[10px]">!</span>
+                          <span>{validationMsg}</span>
+                        </motion.div>
+                      )}
+
+                      <form onSubmit={handlePlaceOrder} className="space-y-4 text-brand-text">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Name field */}
+                          <div className="space-y-1.5">
+                            <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.name ? 'text-red-500' : 'text-brand-muted'}`}>
+                              <User className={`w-3.5 h-3.5 ${formErrors.name ? 'text-red-500' : 'text-brand-accent'}`} />
+                              Your Name / नाम <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={name}
+                              onChange={(e) => {
+                                setName(e.target.value);
+                                if (formErrors.name) {
+                                  setFormErrors(prev => ({ ...prev, name: undefined }));
+                                }
+                              }}
+                              placeholder="Enter your full name"
+                              className={`w-full bg-gray-50 border rounded-xl p-3 text-sm focus:outline-none transition-all font-semibold ${
+                                formErrors.name 
+                                  ? 'border-red-500 focus:border-red-500 bg-red-50/20' 
+                                  : 'border-brand-border focus:border-brand-accent focus:bg-white'
+                              }`}
+                            />
+                            {formErrors.name && (
+                              <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.name}</p>
+                            )}
+                          </div>
+
+                          {/* Phone field */}
+                          <div className="space-y-1.5">
+                            <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.phone ? 'text-red-500' : 'text-brand-muted'}`}>
+                              <Phone className={`w-3.5 h-3.5 ${formErrors.phone ? 'text-red-500' : 'text-brand-accent'}`} />
+                              Phone Number / फ़ोन <span className="text-red-500">*</span>
+                            </label>
+                            <div className={`flex bg-gray-50 border rounded-xl overflow-hidden transition-all ${
+                              formErrors.phone 
+                                ? 'border-red-500 focus-within:border-red-500 bg-red-50/20' 
+                                : 'border-brand-border focus-within:border-brand-accent focus-within:bg-white'
+                            }`}>
+                              <span className={`flex items-center justify-center border-r px-3 text-xs font-black select-none ${
+                                formErrors.phone ? 'bg-red-50 border-red-500 text-red-500' : 'bg-gray-100 border-brand-border text-brand-muted'
+                              }`}>
+                                +91
+                              </span>
+                              <input
+                                type="tel"
+                                required
+                                value={phone}
+                                onChange={handlePhoneChange}
+                                placeholder="10-digit mobile number"
+                                pattern="[0-9]{10}"
+                                className="w-full p-3 text-sm focus:outline-none bg-transparent font-semibold"
+                              />
+                              {phone.length === 10 && !formErrors.phone && (
+                                <span className="flex items-center pr-3 text-green-600 font-bold">✓</span>
+                              )}
+                            </div>
+                            {formErrors.phone && (
+                              <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.phone}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Manual Address Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="sm:col-span-3 space-y-1.5">
+                            <label className={`text-[11px] uppercase font-bold tracking-wider flex items-center gap-1 ${formErrors.address ? 'text-red-500' : 'text-brand-muted'}`}>
+                              <MapPin className={`w-3.5 h-3.5 ${formErrors.address ? 'text-red-500' : 'text-brand-accent'}`} />
+                              Delivery Address / पूरा पता <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                              required
+                              value={address}
+                              onChange={(e) => {
+                                setAddress(e.target.value);
+                                if (formErrors.address) {
+                                  setFormErrors(prev => ({ ...prev, address: undefined }));
+                                }
+                              }}
+                              placeholder="House No., Street name, landmarks, colony, town details..."
+                              rows={2}
+                              className={`w-full bg-gray-50 border rounded-xl p-3 text-sm focus:outline-none transition-all font-semibold ${
+                                formErrors.address 
+                                  ? 'border-red-500 focus:border-red-500 bg-red-50/20' 
+                                  : 'border-brand-border focus:border-brand-accent focus:bg-white'
+                              }`}
+                            />
+                            {formErrors.address && (
+                              <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.address}</p>
+                            )}
+                          </div>
+                        </div>
+                      </form>
                     </div>
-                    <div className="flex justify-between items-center font-bold">
-                      <span className="text-brand-muted">Home Delivery</span>
-                      <span className="text-green-600 uppercase tracking-wide text-[10px] bg-green-100 px-1.5 py-0.5 rounded-md">FREE</span>
+
+                    {/* Modern Side Summary column */}
+                    <div className="md:col-span-2 bg-gray-50 border border-brand-border rounded-2xl p-4 self-start space-y-4 shadow-sm">
+                      <div>
+                        <h5 className="font-black text-xs uppercase tracking-wider text-brand-muted border-b border-brand-border/60 pb-1.5 mb-2.5">
+                          Order Summary ({cartItems.length} items)
+                        </h5>
+                        
+                        {/* Compact Item List */}
+                        <div className="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs">
+                          {cartItems.map((item) => (
+                            <div key={item.product.id} className="flex justify-between items-center gap-1.5">
+                              <span className="font-bold text-brand-text truncate max-w-[130px]">
+                                {item.product.name}
+                              </span>
+                              <span className="text-brand-muted font-semibold shrink-0 text-[11px]">
+                                x{item.quantity}
+                              </span>
+                              <span className="font-extrabold text-brand-accent ml-auto shrink-0">
+                                {formatPrice(item.product.price * item.quantity)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-brand-border/60 pt-3 space-y-2 text-xs">
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="text-brand-muted">Subtotal</span>
+                          <span className="text-brand-text">{formatPrice(subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="text-brand-muted">Home Delivery</span>
+                          <span className="text-green-600 uppercase tracking-wide text-[10px] bg-green-100 px-1.5 py-0.5 rounded-md">FREE</span>
+                        </div>
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="text-brand-muted">Speed Delivery</span>
+                          <span className="text-blue-600 font-extrabold">2-4 Hours</span>
+                        </div>
+                        
+                        <div className="border-t border-brand-border pt-2.5 flex justify-between items-center">
+                          <span className="font-extrabold text-sm text-brand-text">Grand Total</span>
+                          <span className="font-black text-base text-brand-accent">
+                            {formatPrice(subtotal)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center font-bold">
-                      <span className="text-brand-muted">Speed Delivery</span>
-                      <span className="text-blue-600 font-extrabold">2-4 Hours</span>
-                    </div>
-                    
-                    <div className="border-t border-brand-border pt-2.5 flex justify-between items-center">
-                      <span className="font-extrabold text-sm text-brand-text">Grand Total</span>
-                      <span className="font-black text-base text-brand-accent">
-                        {formatPrice(subtotal)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -657,13 +781,28 @@ export default function OrderModal({
                   >
                     Back to Cart
                   </button>
-                  <button
-                    onClick={handlePlaceOrder}
-                    disabled={loading}
-                    className="flex-1 bg-brand-accent text-white py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:bg-opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {loading ? 'Placing Order...' : `Place Order (₹${subtotal})`}
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={handlePlaceOrder}
+                      disabled={loading}
+                      className="flex-1 bg-brand-accent text-white py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:bg-opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {loading ? 'Placing Order...' : `Place Order (₹${subtotal})`}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await loginWithGoogle();
+                        } catch (err) {
+                          console.error('Google login failed:', err);
+                        }
+                      }}
+                      className="flex-1 bg-brand-accent text-white py-3 rounded-xl font-black text-xs md:text-sm shadow-lg hover:bg-opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Google Login / गूगल लॉगिन</span>
+                    </button>
+                  )}
                 </>
               )}
             </div>
