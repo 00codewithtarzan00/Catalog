@@ -18,7 +18,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const databaseId = metaEnv.VITE_FIREBASE_DATABASE_ID || firebaseAppletConfig.firestoreDatabaseId;
 
-export const db = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+// Use (default) if the ID is the problematic one to avoid "Database not found" errors
+const finalDatabaseId = databaseId === "ai-studio-7d3249c8-fa62-4f7e-8603-1359bbf15f5d" ? undefined : databaseId;
+
+export const db = finalDatabaseId ? getFirestore(app, finalDatabaseId) : getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
