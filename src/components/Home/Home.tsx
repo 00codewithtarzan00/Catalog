@@ -524,8 +524,7 @@ export default function Home({ config }: HomeProps) {
       productsQuery = query(
         collection(db, 'products'),
         where('category', '==', selectedCategory),
-        orderBy('createdAt', 'desc'),
-        limit(visibleItems + 1)
+        limit(1000)
       );
     }
 

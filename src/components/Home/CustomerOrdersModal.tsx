@@ -439,21 +439,36 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
                         </div>
 
                         {/* Action buttons & Total */}
-                        <div className="border-t border-brand-border/60 pt-2.5 flex items-center justify-between">
-                          <div className="text-xs">
+                        <div className="border-t border-brand-border/60 pt-2.5 flex items-center justify-between gap-2">
+                          <div className="text-xs min-w-0">
                             <span className="text-brand-muted font-bold block leading-none">Total Paid</span>
                             <span className="text-brand-accent font-black text-sm leading-none mt-0.5 inline-block">
                               {formatPrice(order.totalPrice)}
                             </span>
                           </div>
 
-                          <button
-                            onClick={() => window.open(`${window.location.origin}/#/invoice/${order.id}`, '_blank')}
-                            className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black px-3 py-1.5 rounded-xl transition-colors cursor-pointer uppercase tracking-wider"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            Invoice / रसीद
-                          </button>
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={() => {
+                                const msg = `Hi, I have a question regarding my Order #${order.id} at Raj Kirana Store.`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                              }}
+                              className="inline-flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-black px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer uppercase tracking-wider"
+                            >
+                              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.03-5.114-2.904-6.99C16.458 1.875 13.983 1.85 12.016 1.85c-5.434 0-9.858 4.42-9.863 9.864-.001 1.73.457 3.418 1.328 4.904L2.474 21.56l5.173-1.356z" />
+                              </svg>
+                              Support / सहायता
+                            </button>
+
+                            <button
+                              onClick={() => window.open(`${window.location.origin}/#/invoice/${order.id}`, '_blank')}
+                              className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-black px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer uppercase tracking-wider"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Invoice / रसीद
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
