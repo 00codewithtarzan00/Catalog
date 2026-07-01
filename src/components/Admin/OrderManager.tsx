@@ -405,6 +405,14 @@ export default function OrderManager() {
                                 <User className="w-4 h-4 text-brand-muted shrink-0" />
                                 <span className="font-bold">{order.customerName}</span>
                               </div>
+                              {order.customerEmail && (
+                                <div className="flex items-center gap-2">
+                                  <Mail className="w-4 h-4 text-brand-muted shrink-0" />
+                                  <a href={`mailto:${order.customerEmail}`} className="hover:underline hover:text-brand-accent text-xs font-semibold break-all text-gray-600">
+                                    {order.customerEmail}
+                                  </a>
+                                </div>
+                              )}
                               <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-brand-muted shrink-0" />
                                 <div className="flex items-center gap-2">
