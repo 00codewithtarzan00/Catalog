@@ -153,7 +153,7 @@ export default function CustomerOrdersModal({ isOpen, onClose }: CustomerOrdersM
 
   const formatDate = (timestamp: number) => {
     try {
-      return new Date(timestamp).toLocaleDateString('hi-IN', {
+      return new Date(timestamp).toLocaleString('hi-IN', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',

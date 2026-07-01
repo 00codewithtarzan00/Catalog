@@ -81,7 +81,7 @@ export default function InvoicePage() {
           <div className="text-right">
             <h3 className="text-sm font-semibold text-gray-900 mb-1">Order Details</h3>
             <p className="text-gray-600">ID: #{order.id?.toUpperCase()}</p>
-            <p className="text-gray-600">Date: {new Date(order.createdAt).toLocaleDateString()}</p>
+            <p className="text-gray-600">Date & Time: {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
             <p className="text-gray-600">Status: <span className="capitalize">{order.status}</span></p>
           </div>
         </div>

@@ -828,6 +828,10 @@ export default function OrderModal({
                   </h5>
                   <div className="space-y-1.5">
                     <p className="flex justify-between">
+                      <span className="text-brand-muted font-bold">Order Date & Time:</span>
+                      <span className="font-extrabold">{new Date(placedOrder.createdAt).toLocaleString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </p>
+                    <p className="flex justify-between">
                       <span className="text-brand-muted font-bold">Customer Name:</span>
                       <span className="font-extrabold">{placedOrder.customerName}</span>
                     </p>
